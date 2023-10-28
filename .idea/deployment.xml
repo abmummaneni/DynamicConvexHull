@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Halligan (8275dbc5-8761-467a-b116-fb6bc4d7c427)" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="Halligan (8275dbc5-8761-467a-b116-fb6bc4d7c427)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/DynamicCH" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

@@ -11,5 +11,9 @@ int main() {
         t.insert(randPoint);
         t.displayTree();
     }
+    t.insert(Point(100, 100));
+    t.displayTree();
+    t.remove(Point(100, 100));
+    t.displayTree();
     return 0;
 }

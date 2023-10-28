@@ -18,15 +18,21 @@
  * @details The node is colored as black because the leaf nodes are always black in a red-black tree.
  * In this sense, the leaf nodes are analogous to the NIL nodes in a standard red-black tree.
  */
-TTree::TNode::TNode(Point p) {
+TTree::TNode::TNode(Point p, TTree::TNode *par = nullptr) {
     point = p;
     isLeaf = true;
     color = BLACK;
     left = right = nullptr;
-    parent = nullptr;
+    parent = par;
     lMax = rMin = &point;
 }
 
+/**
+ * @brief Constructs an internal node with the given parent, left child, and right child
+ * @param par Parent node
+ * @param l Left child
+ * @param r Right child
+ */
 TTree::TNode::TNode(TTree::TNode *par, TTree::TNode *l, TTree::TNode *r) {
     isLeaf = false;
     color = RED;
@@ -38,6 +44,13 @@ TTree::TNode::TNode(TTree::TNode *par, TTree::TNode *l, TTree::TNode *r) {
     l->parent = r->parent = this;
 }
 
+/**
+ * @brief Inserts a point into the tree rooted at n
+ * @param p The point to be inserted
+ * @param n The root of the tree to insert into
+ * @details If n is a leaf node, then a new internal node is created with n and p as its children.
+ * If n is an internal node, the function is recursively called on the proper subtree until a leaf node is reached.
+ */
 void TTree::insert(Point &p, TTree::TNode *&n) {
     if (n == nullptr) {
         root = new TNode(p);
@@ -45,10 +58,10 @@ void TTree::insert(Point &p, TTree::TNode *&n) {
     }
     if (n->isLeaf) {
         if (p < n->point) {
-            n = new TNode(n->parent, new TNode(p), n);
+            n = new TNode(n->parent, new TNode(p, n), n);
             return fixUp(n);
         } else {
-            n = new TNode(n->parent, n, new TNode(p));
+            n = new TNode(n->parent, n, new TNode(p, n));
             return fixUp(n);
         }
     } else {
@@ -67,17 +80,18 @@ void TTree::remove(Point &p, TTree::TNode *n) {
                 root = nullptr;
                 delete n;
                 return;
-            } else if (n->parent->left == n) {
-                TNode *sibling = n->parent->right;
             } else {
-                TNode *sibling = n->parent->left;
+                TNode *sibling;
+                if (n->parent->left == n) {
+                    sibling = n->parent->right;
+                } else {
+                    sibling = n->parent->left;
+                }
+                transplant(n->parent, sibling);
+                sibling->color = BLACK;
+                delete n->parent;
+                delete n;
             }
-            // replace n.parent with sibling and then delete parent and n
-            if (n->parent == root) {
-
-            }
-            delete n;
-            return;
         }
     } else {
         if (p < *(n->lMax)) {
@@ -120,7 +134,7 @@ void TTree::rotateLeft(TTree::TNode *n) {
 void TTree::rotateRight(TTree::TNode *n) {
     TNode *leftNode = n->left;
 
-    transplant(n, leftNode); 
+    transplant(n, leftNode);
 
     n->left = leftNode->right;
     if (leftNode->right != nullptr) {
@@ -265,5 +279,24 @@ void TTree::transplant(TTree::TNode *u, TTree::TNode *v) {
     if (v != nullptr) {
         v->parent = u->parent;
     }
+
+}
+
+/**
+ * @brief Splits the hulls stored in the node into two hulls and pushes them down to the children
+ * @param n 
+ */
+void TTree::split(TTree::TNode *&n) {
+    if (n->isLeaf) {
+        return;
+    }
+
+}
+
+void TTree::merge(TTree::TNode *&n) {
+    if (n->isLeaf) {
+        return;
+    }
+
 
 }

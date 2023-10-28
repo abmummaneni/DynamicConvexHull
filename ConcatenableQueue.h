@@ -9,17 +9,19 @@
 #define DYNAMICCONVEXHULL_CONCATENABLEQUEUE_H
 
 #include "Point.h"
-
+#include <vector>
 
 class ConcatenableQueue {
+private:
+    std::vector<Point> hull;
 public:
     ConcatenableQueue();
-
+    explicit ConcatenableQueue(Point p);
     ~ConcatenableQueue();
 
-    void concatenate(ConcatenableQueue *q);
+    void concatenate(ConcatenableQueue *left, ConcatenableQueue *right);
     
-    void split(Point p, ConcatenableQueue *q1, ConcatenableQueue *q2);
+    void split(Point *p, ConcatenableQueue *&left, ConcatenableQueue *&right);
 
 
 };

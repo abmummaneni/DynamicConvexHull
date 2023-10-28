@@ -18,7 +18,8 @@ private:
     static const bool BLACK = true;
     struct TNode {
         Point point;
-        ConcatenableQueue *qStructure;
+        ConcatenableQueue *lower_hull;
+        ConcatenableQueue *upper_hull;
         Point *breakPoint;
         bool isLeaf; 
         
@@ -30,18 +31,20 @@ private:
         Point *rMin;
         
         
-        explicit TNode(Point p);
+        TNode(Point p, TNode *par);
         TNode(TNode* par, TNode *l, TNode *r);
         
     };
     TNode *root;
     
+    void split(TNode *&n);
+    void merge(TNode *&n);
     
     void insert(Point &p, TNode *&n);
     void remove(Point &p, TNode *n);
     void rotateLeft(TNode *n);
     void rotateRight(TNode *n);
-    void flipColors(TNode *n);
+    static void flipColors(TNode *n);
     void fixUp(TNode *curr);
     void transplant(TNode *u, TNode *v);
     
