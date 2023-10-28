@@ -27,13 +27,21 @@ private:
         TNode *left;
         TNode *right;
         TNode *parent = nullptr;
-        Point *lMax;
-        Point *rMin;
+        TNode *lMax;
+        TNode *rMin;
         
         
         TNode(Point p, TNode *par);
         TNode(TNode* par, TNode *l, TNode *r);
-        
+
+        bool operator<(const TNode &rhs) const;
+
+        bool operator>(const TNode &rhs) const;
+
+        bool operator<=(const TNode &rhs) const;
+
+        bool operator>=(const TNode &rhs) const;
+
     };
     TNode *root;
     
@@ -49,7 +57,7 @@ private:
     void transplant(TNode *u, TNode *v);
     void removeFixUp(TNode *curr);
     
-    int checkProperties(TNode *n, Point *lMax, Point *rMin);
+    int checkProperties(TNode *n);
     
     TNode *findMin(TNode *n);
     TNode *findMax(TNode *n);

@@ -24,7 +24,7 @@ TTree::TNode::TNode(Point p, TTree::TNode *par = nullptr) {
     color = BLACK;
     left = right = nullptr;
     parent = par;
-    lMax = rMin = &point;
+    lMax = rMin = this;
 }
 
 /**
@@ -39,9 +39,25 @@ TTree::TNode::TNode(TTree::TNode *par, TTree::TNode *l, TTree::TNode *r) {
     left = l;
     right = r;
     parent = par;
-    lMax = l->lMax;
-    rMin = r->rMin;
+    lMax = l->rMin;
+    rMin = r->lMax;
     l->parent = r->parent = this;
+}
+
+bool TTree::TNode::operator<(const TTree::TNode &rhs) const {
+    return point < rhs.point;
+}
+
+bool TTree::TNode::operator>(const TTree::TNode &rhs) const {
+    return rhs < *this;
+}
+
+bool TTree::TNode::operator<=(const TTree::TNode &rhs) const {
+    return !(rhs < *this);
+}
+
+bool TTree::TNode::operator>=(const TTree::TNode &rhs) const {
+    return !(*this < rhs);
 }
 
 /**
@@ -67,10 +83,13 @@ void TTree::insert(Point &p, TTree::TNode *&n) {
             return fixUp(n);
         }
     } else {
-        if (p < *(n->lMax)) {
+        if (p < n->lMax->point) {
             insert(p, n->left);
         } else {
             insert(p, n->right);
+            if (p < n->rMin->point) {
+                n->rMin = n->rMin->parent->left;
+            }
         }
     }
 }
@@ -85,7 +104,7 @@ bool TTree::remove(Point &p, TTree::TNode *n) {
             delete n;
             return true;
         }
-        
+
         TNode *sibling;
         if (n->parent->left == n) {
             sibling = n->parent->right;
@@ -93,16 +112,16 @@ bool TTree::remove(Point &p, TTree::TNode *n) {
             sibling = n->parent->left;
         }
         transplant(n->parent, sibling);
-        
+
         if (n->parent->color == BLACK) {
             removeFixUp(sibling);
         }
         delete n->parent;
         delete n;
         return true;
-        
+
     } else {
-        if (p <= *(n->lMax)) {
+        if (p <= n->lMax->point) {
             return remove(p, n->left);
         } else {
             return remove(p, n->right);
@@ -228,15 +247,15 @@ void TTree::displayTree() {
         keepGoing = false;
         int size = q.size();
         std::cout << "Level " << level << ":";
-        std::cout << std::string(ceil(pow(2, (4 - level))), ' ');
+        std::cout << std::string(ceil(pow(2, (5 - level))), ' ');
         for (int i = 0; i < size; i++) {
             TNode *n = q.front();
             q.pop();
             if (n == nullptr) {
-                std::cout << "N ";
+                std::cout << "  N  ";
                 q.push(nullptr);
                 q.push(nullptr);
-                std::cout << std::string(abs(pow(2, (5 - level)) - 2), ' ');
+                std::cout << std::string(abs(pow(2, (6 - level)) - 4), ' ');
                 continue;
             }
             if (n->isLeaf) {
@@ -249,14 +268,14 @@ void TTree::displayTree() {
                 keepGoing = true;
                 if (n->color == RED) std::cout << "\033[1;31m";
                 else std::cout << "\033[1;30m";
-                std::cout << n->lMax->x;
+                std::cout << n->lMax->point.x;
                 std::cout << " I ";
-                std::cout << n->rMin->x;
+                std::cout << n->rMin->point.x;
                 std::cout << "\033[0m";
             }
             q.push(n->left);
             q.push(n->right);
-            std::cout << std::string(pow(2, (5 - level)) - 2, ' ');
+            std::cout << std::string(pow(2, (6 - level)) - 4, ' ');
         }
         std::cout << std::endl;
         level++;
@@ -370,7 +389,7 @@ void TTree::removeFixUp(TTree::TNode *curr) {
 /*
  * recursively checks that the tree follows all red black tree properties and checks that rmin and lmax are correct
  */
-int TTree::checkProperties(TTree::TNode *n, Point *lMax, Point *rMin) {
+int TTree::checkProperties(TTree::TNode *n) {
     if (n->isLeaf) {
         assert(n->color == BLACK);
         return 1;
@@ -379,16 +398,10 @@ int TTree::checkProperties(TTree::TNode *n, Point *lMax, Point *rMin) {
         assert(n->left->color == BLACK);
         assert(n->right->color == BLACK);
     }
-    assert(n->lMax == findMax(n->left)->lMax);
-    assert(n->rMin == findMin(n->right)->rMin);
-    if (lMax != nullptr) {
-        assert(*n->lMax <= *lMax);
-    }
-    if (rMin != nullptr) {
-        assert(*n->rMin >= *rMin);
-    }
-    int leftBlackHeight = checkProperties(n->left, n->lMax, nullptr);
-    int rightBlackHeight = checkProperties(n->right, nullptr, n->rMin);
+    assert(n->lMax->point == findMax(n->left)->lMax->point);
+    assert(n->rMin->point == findMin(n->right)->rMin->point);
+    int leftBlackHeight = checkProperties(n->left);
+    int rightBlackHeight = checkProperties(n->right);
     assert(leftBlackHeight == rightBlackHeight);
     if (n->color == BLACK) {
         return leftBlackHeight + 1;
@@ -398,7 +411,7 @@ int TTree::checkProperties(TTree::TNode *n, Point *lMax, Point *rMin) {
 }
 
 void TTree::checkProperties() {
-    checkProperties(root, root->lMax, root->rMin);
+    checkProperties(root);
 }
 
 TTree::TNode *TTree::findMax(TTree::TNode *n) {
