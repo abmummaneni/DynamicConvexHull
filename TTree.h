@@ -41,20 +41,27 @@ private:
     void merge(TNode *&n);
     
     void insert(Point &p, TNode *&n);
-    void remove(Point &p, TNode *n);
+    bool remove(Point &p, TNode *n);
     void rotateLeft(TNode *n);
     void rotateRight(TNode *n);
     static void flipColors(TNode *n);
     void fixUp(TNode *curr);
     void transplant(TNode *u, TNode *v);
+    void removeFixUp(TNode *curr);
+    
+    int checkProperties(TNode *n, Point *lMax, Point *rMin);
+    
+    TNode *findMin(TNode *n);
+    TNode *findMax(TNode *n);
     
     void recycle(TNode *n);
 public:
     TTree();
     ~TTree();
     void insert(Point p);
-    void remove(Point p);
+    bool remove(Point p);
     void displayTree();
+    void checkProperties();
     
 };
 
