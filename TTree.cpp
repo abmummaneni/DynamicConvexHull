@@ -41,7 +41,8 @@ TTree::TNode::TNode(TTree::TNode *par, TTree::TNode *l, TTree::TNode *r) {
     parent = par;
     lMax = l->rMin;
     rMin = r->lMax;
-    l->parent = r->parent = this;
+    l->parent = this;
+    r->parent = this;
 }
 
 bool TTree::TNode::operator<(const TTree::TNode &rhs) const {
@@ -61,35 +62,46 @@ bool TTree::TNode::operator>=(const TTree::TNode &rhs) const {
 }
 
 /**
- * @brief Inserts a point into the tree rooted at n
+ * @brief Inserts a point into the tree rooted at curr
  * @param p The point to be inserted
- * @param n The root of the tree to insert into
- * @details If n is a leaf node, then a new internal node is created with n and p as its children.
- * If n is an internal node, the function is recursively called on the proper subtree until a leaf node is reached.
+ * @param curr The root of the tree to insert into
+ * @details If curr is a leaf node, then a new internal node is created with curr and p as its children.
+ * If curr is an internal node, the function is recursively called on the proper subtree until a leaf node is reached.
  */
-void TTree::insert(Point &p, TTree::TNode *&n) {
-    if (n == nullptr) {
+TTree::TNode *TTree::insert(Point &p, TTree::TNode *curr) {
+    if (curr == nullptr) {
         root = new TNode(p);
-        return;
+        return root;
     }
-    if (n->isLeaf) {
-        if (p < n->point) {
-            n = new TNode(n->parent, new TNode(p, n), n);
-            displayTree();
-            return fixUp(n);
+    if (curr->isLeaf) {
+        TNode *newLeaf = new TNode(p);
+        TNode *newInternal;
+        if (p < curr->point) {
+            newInternal = new TNode(curr->parent, newLeaf, curr);
         } else {
-            n = new TNode(n->parent, n, new TNode(p, n));
-            displayTree();
-            return fixUp(n);
+            newInternal = new TNode(curr->parent, curr, newLeaf);
         }
-    } else {
-        if (p < n->lMax->point) {
-            insert(p, n->left);
+        if (newInternal->parent == nullptr) {
+            root = newInternal;
+        } else if (newInternal->parent->left == curr) {
+            newInternal->parent->left = newInternal;
         } else {
-            insert(p, n->right);
-            if (p < n->rMin->point) {
-                n->rMin = n->rMin->parent->left;
+            newInternal->parent->right = newInternal;
+        }
+
+        fixUp(newInternal);
+        return newLeaf;
+    } else {
+        if (p < curr->lMax->point) {
+            return insert(p, curr->left);
+        } else {
+            if (p < curr->rMin->point) {
+                TNode *newLeaf = insert(p, curr->rMin);
+                curr->rMin = newLeaf;
+            } else {
+                return insert(p, curr->right);
             }
+
         }
     }
 }
@@ -247,35 +259,33 @@ void TTree::displayTree() {
         keepGoing = false;
         int size = q.size();
         std::cout << "Level " << level << ":";
-        std::cout << std::string(ceil(pow(2, (5 - level))), ' ');
+        std::cout << std::string(ceil(pow(2, (7 - level))), ' ');
         for (int i = 0; i < size; i++) {
             TNode *n = q.front();
             q.pop();
             if (n == nullptr) {
-                std::cout << "  N  ";
+                std::cout << "N ";
                 q.push(nullptr);
                 q.push(nullptr);
-                std::cout << std::string(abs(pow(2, (6 - level)) - 4), ' ');
+                std::cout << std::string(abs(pow(2, (8 - level)) - 2), ' ');
                 continue;
             }
             if (n->isLeaf) {
                 keepGoing = true;
                 if (n->color == RED) std::cout << "\033[1;31m";
                 else std::cout << "\033[1;30m";
-                std::cout << "  " << n->point.x << " ";
+                std::cout << n->point.x;
                 std::cout << "\033[0m";
             } else {
                 keepGoing = true;
                 if (n->color == RED) std::cout << "\033[1;31m";
                 else std::cout << "\033[1;30m";
-                std::cout << n->lMax->point.x;
-                std::cout << " I ";
-                std::cout << n->rMin->point.x;
+                std::cout << "I ";
                 std::cout << "\033[0m";
             }
             q.push(n->left);
             q.push(n->right);
-            std::cout << std::string(pow(2, (6 - level)) - 4, ' ');
+            std::cout << std::string(pow(2, (8 - level)) - 2, ' ');
         }
         std::cout << std::endl;
         level++;

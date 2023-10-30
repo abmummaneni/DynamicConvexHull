@@ -33,6 +33,7 @@ private:
         
         TNode(Point p, TNode *par);
         TNode(TNode* par, TNode *l, TNode *r);
+        TNode() = default;
 
         bool operator<(const TNode &rhs) const;
 
@@ -48,7 +49,7 @@ private:
     void split(TNode *&n);
     void merge(TNode *&n);
     
-    void insert(Point &p, TNode *&n);
+    TNode *insert(Point &p, TNode *curr);
     bool remove(Point &p, TNode *n);
     void rotateLeft(TNode *n);
     void rotateRight(TNode *n);
