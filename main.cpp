@@ -18,12 +18,12 @@ int main() {
         cout << "checking properties" << endl;
         t.checkProperties();
     }
-    /*std::shuffle(points.begin(), points.end(), std::mt19937(std::random_device()()));
+    std::shuffle(points.begin(), points.end(), std::mt19937(std::random_device()()));
     for (Point p : points) {
         cout << "removing " << p.x << endl;
-        assert(t.remove(p));
+        t.remove(p);
         t.displayTree();
         t.checkProperties();
-    }*/
+    }
     return 0;
 }

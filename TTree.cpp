@@ -106,15 +106,15 @@ TTree::TNode *TTree::insert(Point &p, TTree::TNode *curr) {
     }
 }
 
-bool TTree::remove(Point &p, TTree::TNode *n) {
+TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
     if (n->isLeaf) {
         if (n->point != p) {
-            return false;
+            return nullptr;
         }
         if (n == root) {
             root = nullptr;
             delete n;
-            return true;
+            return nullptr;
         }
 
         TNode *sibling;
@@ -128,12 +128,24 @@ bool TTree::remove(Point &p, TTree::TNode *n) {
         if (n->parent->color == BLACK) {
             removeFixUp(sibling);
         }
-        delete n->parent;
+        TNode *par = n->parent;
         delete n;
-        return true;
+        return par;
+        
 
     } else {
-        if (p <= n->lMax->point) {
+        if (p == n->lMax->point){
+            TNode *internalToDelete = remove(p, n->lMax);
+            n->lMax = internalToDelete->lMax;
+            delete internalToDelete;
+            
+        }
+        else if (p == n->rMin->point){
+            TNode *internalToDelete = remove(p, n->rMin);
+            n->rMin = internalToDelete->rMin;
+            delete internalToDelete;
+        }
+        else if (p < n->lMax->point) {
             return remove(p, n->left);
         } else {
             return remove(p, n->right);
@@ -251,6 +263,10 @@ bool TTree::remove(Point p) {
 // Each point's x coordinate is printed and each internal node is printed as I.
 // The proper white space to be printed between nodes is calculated by the level and nodes are printed by their red or black color
 void TTree::displayTree() {
+    if (root == nullptr) {
+        std::cout << "Empty Tree" << std::endl;
+        return;
+    }
     std::queue<TNode *> q;
     q.push(root);
     int level = 0;
@@ -421,6 +437,7 @@ int TTree::checkProperties(TTree::TNode *n) {
 }
 
 void TTree::checkProperties() {
+    if (root == nullptr) return;
     checkProperties(root);
 }
 

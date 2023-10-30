@@ -50,7 +50,7 @@ private:
     void merge(TNode *&n);
     
     TNode *insert(Point &p, TNode *curr);
-    bool remove(Point &p, TNode *n);
+    TNode *remove(Point &p, TNode *n);
     void rotateLeft(TNode *n);
     void rotateRight(TNode *n);
     static void flipColors(TNode *n);
