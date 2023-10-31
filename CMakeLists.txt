@@ -10,4 +10,6 @@ add_executable(DynamicConvexHull main.cpp
         TTree.cpp
         ConcatenableQueue.cpp
         Point.h
-        Point.cpp)
+        Point.cpp
+        Angle.cpp
+        Angle.h)

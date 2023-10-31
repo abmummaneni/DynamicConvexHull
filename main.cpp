@@ -4,8 +4,18 @@
 #include <random>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
+#include "Angle.h"
 using namespace std;
+void angleTest();
 int main() {
+    return 0;
+}
+void angleTest(){
+    Angle a = Angle(Point(0, 1), Point(1, 0), Point(2,1));
+    cout << a.angle << endl;
+}
+void ttreTest(){
     TTree t;
     cout << "created" << endl;
     vector<Point> points;
@@ -42,5 +52,4 @@ int main() {
         t.displayTree();
         t.checkProperties();
     }
-    return 0;
 }
