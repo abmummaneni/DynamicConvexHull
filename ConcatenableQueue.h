@@ -18,20 +18,31 @@ private:
         QNode *left;
         QNode *right;
         int height;
+        
+        QNode(Angle a);
+        QNode(QNode *l,  Angle a, QNode *r);
+        QNode() = default;
+        int balanceFactor(QNode *&n);
+
     };
     std::vector<Angle> hull;
-    Angle *bridge;
+    Angle *leftBridge;
+    Angle *rightBridge;
     QNode *root;
+    
+    
     void split(QNode *&k);
     QNode *join2(QNode *&T1, QNode *&T1Max, QNode *&T2Min, QNode *&T2);
-    QNode *join(QNode *&T1, QNode *&bridge,  QNode *&T2);
+    QNode *join(QNode *&T1, QNode *&k,  QNode *&T2);
+    QNode *joinRight(QNode *&T1, Angle k, QNode *&T2);
+    QNode *joinLeft(QNode *&T1, QNode *&k, QNode *&T2);
+    static int getHeight(QNode *&n);
     
     
     QNode* removeMax(QNode *&n);
     QNode* removeMin(QNode *&n);
     
-    int height(QNode *&n);
-    int balanceFactor(QNode *&n);
+    
     
     QNode *rotateLeft(QNode *n);
     QNode *rotateRight(QNode *n);

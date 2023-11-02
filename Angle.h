@@ -5,6 +5,7 @@
 #ifndef DYNAMICCONVEXHULL_ANGLE_H
 #define DYNAMICCONVEXHULL_ANGLE_H
 
+#include <ostream>
 #include "Point.h"
 
 class Angle {
@@ -19,9 +20,13 @@ public:
     double angle;
 
     Angle(Point left, Point middle, Point right);
+    Angle(Point p);
+    Angle() = default;
     
     Cases getCase(Point *p, Side side);
     double getAngle(Point &a, Point &b, Point &c);
+
+    friend std::ostream &operator<<(std::ostream &os, const Angle &angle);
 };
 
 

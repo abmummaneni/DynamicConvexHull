@@ -4,7 +4,7 @@
  * @author Abhinav Mummaneni
  * @details Concatenable Queue is implemented as an AVL tree that uses the splitHull and join2 functions.
  */
- 
+
 #include "ConcatenableQueue.h"
 
 ConcatenableQueue::ConcatenableQueue() = default;
@@ -20,22 +20,99 @@ void ConcatenableQueue::splitHull(ConcatenableQueue *&left, ConcatenableQueue *&
 }
 
 ConcatenableQueue::ConcatenableQueue(Point p) {
+    root = new QNode(Angle(p));
 }
 
 ConcatenableQueue::QNode *ConcatenableQueue::join2(QNode *&T1, QNode *&T1Max, QNode *&T2Min, QNode *&T2) {
 }
 
 /**
- * @brief Joins two trees together and uses the bridge to connect them. All values in T1 are less than the bridge 
+ * @brief Joins two trees together and uses the bridge to connect them. All values in T1 are less than k 
  * which is less than all values in T2.
- * @param T1 
- * @param bridge 
- * @param T2 
+ * @param T1 The "left" tree to be joined.
+ * @param k A middle value, in practice will be either the previous max of T1 or the previous min of T2 which has just 
+ * been removed so that this function can run @see join2
+ * @param T2 The "right" tree to be joined.
  * @return A pointer to the new merged tree.
  */
-ConcatenableQueue::QNode *ConcatenableQueue::join(ConcatenableQueue::QNode *&T1, ConcatenableQueue::QNode *&bridge,
+ConcatenableQueue::QNode *ConcatenableQueue::join(ConcatenableQueue::QNode *&T1, ConcatenableQueue::QNode *&k,
                                                   ConcatenableQueue::QNode *&T2) {
-    int height1 = T1->height;
-    int height2 = T2->height;
+    int t1Height = getHeight(T1);
+    int t2Height = getHeight(T2);
+
 }
 
+/**
+ * @brief Helper function for join. Called when the height of T1 is greater than the getHeight of T2.
+ * @param T1 Left tree to be joined.
+ * @param k Middle value
+ * @param T2 Right tree to be joined.
+ * @return A pointer to the new merged tree.
+ * @details This function recursively traces down the right spine of T1 until a suitable getHeight node, c, is found.
+ * It then uses the middle node k to join the two trees by creating a new node with value k, left child c, and right
+ * child T2. Rotations and getHeight updates are performed as necessary to maintain the AVL property.
+ * 
+ */
+ConcatenableQueue::QNode *ConcatenableQueue::joinRight(QNode *&T1, Angle k,
+                                                       QNode *&T2) {
+    QNode *l = T1->left;
+    Angle _k = T1->angle;
+    QNode *c = T1->right;
+    if (c->height <= T2->height + 1) { // T2->height <= c->height because we stop ASAP
+        QNode *connection = new QNode(c, k, T2);
+        if (getHeight(connection) <= getHeight(l) + 1) { // If T1 is still balanced
+            delete T1;
+            return new QNode(l, _k, connection);
+        } else { // T1 is right heavy. Since T2->height <= c->height we RL rotate
+            delete T1;
+            return rotateLeft(new QNode(l, _k, rotateRight(connection)));
+        }
+    }
+    QNode *connection = joinRight(c, k, T2);
+    if (getHeight(connection) <= getHeight(l) + 1) { // If T1 is still balanced
+        delete T1;
+        return new QNode(l, _k, connection);
+    } else { // T1 is right heavy, but we know this is an RR case since now at an ancestor
+        delete T1;
+        return rotateLeft(new QNode(l, _k, connection));
+    }
+}
+
+int ConcatenableQueue::getHeight(ConcatenableQueue::QNode *&n) {
+    return n == nullptr ? -1 : n->height;
+}
+
+ConcatenableQueue::QNode *ConcatenableQueue::rotateLeft(ConcatenableQueue::QNode *n) {
+    if (n == nullptr) return nullptr;
+    QNode *r = n->right;
+    n->right = r->left;
+    r->left = n;
+    n->height = std::max(getHeight(n->left), getHeight(n->right)) + 1;
+    r->height = std::max(getHeight(r->left), getHeight(r->right)) + 1;
+    return r;
+}
+
+ConcatenableQueue::QNode *ConcatenableQueue::rotateRight(ConcatenableQueue::QNode *n) {
+    if (n == nullptr) return nullptr;
+    QNode *l = n->left;
+    n->left = l->right;
+    l->right = n;
+    n->height = std::max(getHeight(n->left), getHeight(n->right)) + 1;
+    l->height = std::max(getHeight(l->left), getHeight(l->right)) + 1;
+    return l;
+}
+
+ConcatenableQueue::QNode::QNode(ConcatenableQueue::QNode *l, Angle a, ConcatenableQueue::QNode *r) {
+    left = l;
+    right = r;
+    angle = a;
+    height = std::max(getHeight(l), getHeight(r)) + 1;
+}
+
+
+ConcatenableQueue::QNode::QNode(Angle a) {
+    angle = a;
+    height = 0;
+    left = nullptr;
+    right = nullptr;
+}

@@ -16,7 +16,6 @@ Angle::Cases Angle::getCase(Point *p, Side side) {
     if (angle == 0) return Supporting; // 2 points are always supporting
     Angle bridge = Angle(side == Left ? left : right, middle, *p);
     double bridgeAngle = bridge.angle;
-    std::cout << "bridge angle: " << bridgeAngle << std::endl;
     if (bridgeAngle < angle) return Concave;
     else if (bridgeAngle > M_PI) return Reflex;
     else return Supporting;
@@ -61,4 +60,17 @@ Angle::Angle(Point left, Point middle, Point right) {
         angle = getAngle(left, middle, temp);
         if (angle > M_PI) angle = 2 * M_PI - angle;
     } else angle = getAngle(left, middle, right);
+}
+
+std::ostream &operator<<(std::ostream &os, const Angle &angle) {
+    os << "left: " << angle.left << " middle: " << angle.middle << " right: " << angle.right << " angle: "
+       << angle.angle;
+    return os;
+}
+
+Angle::Angle(Point p) {
+    left = p;
+    middle = p;
+    right = p;
+    angle = 0;
 }

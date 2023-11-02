@@ -1,6 +1,6 @@
 /**
  * @file TTree.h
- * @brief TTree is a height balanced binary search tree that stores unprocessed data in its leaves and stores processed 
+ * @brief TTree is a getHeight balanced binary search tree that stores unprocessed data in its leaves and stores processed 
  * results in its internal nodes. The TTree helps solve the dynamic convex hull problem by storing the partially 
  * constructed convex hulls in the internal nodes and the points of the set in the leaves.
  * @date 10/18/23
