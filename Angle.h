@@ -8,9 +8,10 @@
 #include "Point.h"
 
 class Angle {
+public:
     static const enum Side {Left, Right};
     static const enum Cases {Concave, Supporting, Reflex};
-public:
+
     
     // The cases describe how the angle is oriented relative to the line segment
     

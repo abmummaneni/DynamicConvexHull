@@ -9,11 +9,15 @@
 using namespace std;
 void angleTest();
 int main() {
+    angleTest();
     return 0;
 }
 void angleTest(){
-    Angle a = Angle(Point(0, 1), Point(1, 0), Point(2,1));
+    Angle a = Angle(Point(0, 1), Point(0, 1), Point(1,0));
     cout << a.angle << endl;
+    Point *p = new Point(1, 1);
+    cout << a.getCase(p, Angle::Left);
+    delete p;
 }
 void ttreTest(){
     TTree t;
