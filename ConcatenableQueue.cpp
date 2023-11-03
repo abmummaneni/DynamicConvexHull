@@ -8,6 +8,7 @@
 #include "ConcatenableQueue.h"
 #include <cassert>
 
+
 ConcatenableQueue::ConcatenableQueue() = default;
 
 ConcatenableQueue::~ConcatenableQueue() = default;
@@ -25,6 +26,11 @@ ConcatenableQueue::ConcatenableQueue(Point p) {
 }
 
 ConcatenableQueue::QNode *ConcatenableQueue::join2(QNode *&T1, QNode *&T1Max, QNode *&T2Min, QNode *&T2) {
+    if (T1 == nullptr) return T2;
+    if (T2 == nullptr) return T1;
+    int t1Height = getHeight(T1);
+    int t2Height = getHeight(T2);
+
 }
 
 /**
@@ -36,46 +42,51 @@ ConcatenableQueue::QNode *ConcatenableQueue::join2(QNode *&T1, QNode *&T1Max, QN
  * @param T2 The "right" tree to be joined.
  * @return A pointer to the new merged tree.
  */
-ConcatenableQueue::QNode *ConcatenableQueue::join(ConcatenableQueue::QNode *&T1, ConcatenableQueue::QNode *&k,
+ConcatenableQueue::QNode *ConcatenableQueue::join(ConcatenableQueue::QNode *&T1, Angle &k, 
                                                   ConcatenableQueue::QNode *&T2) {
     int t1Height = getHeight(T1);
     int t2Height = getHeight(T2);
+    if (t1Height == t2Height) {
+        return new QNode(T1, k, T2);
+    }
+    if (t1Height > t2Height) {
+        return joinRight(T1, k, T2);
+    } else {
+        return joinLeft(T1, k, T2);
+    }
 
 }
 
 /**
  * @brief Helper function for join. Called when the height of T1 is greater than the getHeight of T2.
  * @param T1 Left tree to be joined.
- * @param k Middle value
+ * @param k Middle key 
  * @param T2 Right tree to be joined.
  * @return A pointer to the new merged tree.
  * @details This function recursively traces down the right spine of T1 until a suitable getHeight node, c, is found.
- * It then uses the middle node k to join the two trees by creating a new node with value k, left child c, and right
+ * It then uses the middle key k to join the two trees by creating a new node with value k, left child c, and right
  * child T2. Rotations and getHeight updates are performed as necessary to maintain the AVL property.
  * 
  */
-ConcatenableQueue::QNode *ConcatenableQueue::joinRight(QNode *&T1, Angle k,
+ConcatenableQueue::QNode *ConcatenableQueue::joinRight(QNode *&T1, Angle &k,
                                                        QNode *&T2) {
     QNode *l = T1->left;
-    Angle _k = T1->angle;
     QNode *c = T1->right;
     if (c->height <= T2->height + 1) { // T2->height <= c->height because we stop ASAP
         QNode *connection = new QNode(c, k, T2);
         if (getHeight(connection) <= getHeight(l) + 1) { // If T1 is still balanced
-            delete T1;
-            return new QNode(l, _k, connection);
+            T1->right = connection;
+            return T1;
         } else { // T1 is right heavy. Since T2->height <= c->height we RL rotate
-            delete T1;
-            return rotateLeft(new QNode(l, _k, rotateRight(connection)));
+            T1->right = rotateRight(connection);
+            return rotateLeft(T1);
         }
     }
-    QNode *connection = joinRight(c, k, T2);
-    if (getHeight(connection) <= getHeight(l) + 1) { // If T1 is still balanced
-        delete T1;
-        return new QNode(l, _k, connection);
+    T1->right = joinRight(c, k, T2);
+    if (getHeight(T1->right) <= getHeight(l) + 1) { // If T1 is still balanced
+        return T1;
     } else { // T1 is right heavy, but we know this is an RR case since now at an ancestor
-        delete T1;
-        return rotateLeft(new QNode(l, _k, connection));
+        return rotateLeft(T1);
     }
 }
 
@@ -147,10 +158,15 @@ void ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *r
     } else if (lCase == Angle::Reflex and rCase == Angle::Concave) {
         l = l->left;
     } else if (lCase == Angle::Concave and rCase == Angle::Concave) { // Complex case!
-        
+
     }
 
 
+}
+
+
+int ConcatenableQueue::balanceFactor(ConcatenableQueue::QNode *&n) {
+    return getHeight(n->left) - getHeight(n->right);
 }
 
 ConcatenableQueue::QNode::QNode(ConcatenableQueue::QNode *l, Angle a, ConcatenableQueue::QNode *r) {

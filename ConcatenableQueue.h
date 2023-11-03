@@ -22,7 +22,6 @@ private:
         QNode(Angle a);
         QNode(QNode *l,  Angle a, QNode *r);
         QNode() = default;
-        int balanceFactor(QNode *&n);
 
     };
     std::vector<Angle> hull;
@@ -33,10 +32,11 @@ private:
     
     void split(QNode *&k);
     QNode *join2(QNode *&T1, QNode *&T1Max, QNode *&T2Min, QNode *&T2);
-    QNode *join(QNode *&T1, QNode *&k,  QNode *&T2);
-    QNode *joinRight(QNode *&T1, Angle k, QNode *&T2);
-    QNode *joinLeft(QNode *&T1, QNode *&k, QNode *&T2);
+    QNode *join(QNode *&T1, Angle &k,  QNode *&T2);
+    QNode *joinRight(QNode *&T1, Angle &k, QNode *&T2);
+    QNode *joinLeft(QNode *&T1, Angle &k, QNode *&T2);
     static int getHeight(QNode *&n);
+    static int balanceFactor(QNode *&n);
     
     
     QNode* removeMax(QNode *&n);
@@ -59,7 +59,6 @@ public:
     
     void findBridge(ConcatenableQueue *left, ConcatenableQueue *right);
     
-
 
 };
 
