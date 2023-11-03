@@ -6,6 +6,7 @@
  */
 
 #include "ConcatenableQueue.h"
+#include <cassert>
 
 ConcatenableQueue::ConcatenableQueue() = default;
 
@@ -100,6 +101,56 @@ ConcatenableQueue::QNode *ConcatenableQueue::rotateRight(ConcatenableQueue::QNod
     n->height = std::max(getHeight(n->left), getHeight(n->right)) + 1;
     l->height = std::max(getHeight(l->left), getHeight(l->right)) + 1;
     return l;
+}
+
+
+/**
+ * @brief Checks that the tree maintains all AVL and BST properties.
+ * @param n 
+ * @return 
+ */
+void ConcatenableQueue::checkProperties(ConcatenableQueue::QNode *n, ConcatenableQueue::QNode *min,
+                                        ConcatenableQueue::QNode *max) {
+    if (n == nullptr) return;
+    if (min != nullptr) assert(n->angle > min->angle);
+    if (max != nullptr) assert(n->angle < max->angle);
+
+    assert(n->height == std::max(getHeight(n->left), getHeight(n->right)) + 1);
+    assert(n->height == checkHeight(n));
+    assert(std::abs(getHeight(n->left) - getHeight(n->right)) <= 1);
+    checkProperties(n->left, min, n);
+    checkProperties(n->right, n, max);
+
+}
+
+int ConcatenableQueue::checkHeight(ConcatenableQueue::QNode *n) {
+    if (n == nullptr) return -1;
+    return std::max(checkHeight(n->left), checkHeight(n->right)) + 1;
+}
+
+void ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right) {
+    QNode *l = left->root;
+    QNode *r = right->root;
+    Angle::Cases lCase = l->angle.getCase(&r->angle.middle, Angle::Left);
+    Angle::Cases rCase = r->angle.getCase(&l->angle.middle, Angle::Right);
+    if (lCase == Angle::Supporting and rCase == Angle::Supporting) { // Terminating Case
+
+    } else if (lCase == Angle::Supporting) {
+        r = (rCase == Angle::Concave) ? r->left : r->right;
+    } else if (rCase == Angle::Supporting) {
+        l = (lCase == Angle::Concave) ? l->right : l->left;
+    } else if (lCase == Angle::Reflex and rCase == Angle::Reflex) {
+        l = l->left;
+        r = r->right;
+    } else if (lCase == Angle::Concave and rCase == Angle::Reflex) {
+        r = r->right;
+    } else if (lCase == Angle::Reflex and rCase == Angle::Concave) {
+        l = l->left;
+    } else if (lCase == Angle::Concave and rCase == Angle::Concave) { // Complex case!
+        
+    }
+
+
 }
 
 ConcatenableQueue::QNode::QNode(ConcatenableQueue::QNode *l, Angle a, ConcatenableQueue::QNode *r) {

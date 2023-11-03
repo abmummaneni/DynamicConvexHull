@@ -46,6 +46,8 @@ private:
     
     QNode *rotateLeft(QNode *n);
     QNode *rotateRight(QNode *n);
+    int checkHeight(QNode *n);
+    void checkProperties(QNode *n, QNode *max, QNode *min);
 public:
     ConcatenableQueue();
     explicit ConcatenableQueue(Point p);

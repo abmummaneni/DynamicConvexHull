@@ -27,6 +27,14 @@ public:
     double getAngle(Point &a, Point &b, Point &c);
 
     friend std::ostream &operator<<(std::ostream &os, const Angle &angle);
+
+    bool operator<(const Angle &rhs) const;
+
+    bool operator>(const Angle &rhs) const;
+
+    bool operator<=(const Angle &rhs) const;
+
+    bool operator>=(const Angle &rhs) const;
 };
 
 

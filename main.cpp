@@ -19,7 +19,7 @@ int main() {
 
 void angleTest() {
     // create a vector of angles representing the bottom of the unit circle
-    // x^2 + y^2 = 1
+    // bottom of x^2 + y^2 = 1
     vector<Point> points;
     for (int i = -10; i < 10; ++i) {
         double x = (double) i / 10;

@@ -74,3 +74,19 @@ Angle::Angle(Point p) {
     right = p;
     angle = 0;
 }
+
+bool Angle::operator<(const Angle &rhs) const {
+    return middle < rhs.middle;
+}
+
+bool Angle::operator>(const Angle &rhs) const {
+    return rhs < *this;
+}
+
+bool Angle::operator<=(const Angle &rhs) const {
+    return !(rhs < *this);
+}
+
+bool Angle::operator>=(const Angle &rhs) const {
+    return !(*this < rhs);
+}
