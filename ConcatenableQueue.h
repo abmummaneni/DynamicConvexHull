@@ -12,7 +12,7 @@
 #include <vector>
 #include "Angle.h"
 class ConcatenableQueue {
-private:
+public:
     struct QNode{
         Angle angle;
         QNode *left;
@@ -32,23 +32,22 @@ private:
     
     void split(QNode *&k);
     QNode *join2(QNode *&T1, QNode *&T1Max, QNode *&T2Min, QNode *&T2);
-    QNode *join(QNode *&T1, Angle &k,  QNode *&T2);
-    QNode *joinRight(QNode *&T1, Angle &k, QNode *&T2);
-    QNode *joinLeft(QNode *&T1, Angle &k, QNode *&T2);
+    static QNode *join(QNode *&T1, Angle &k,  QNode *&T2);
+    static QNode *joinRight(QNode *&T1, Angle &k, QNode *&T2);
+    static QNode *joinLeft(QNode *&T1, Angle &k, QNode *&T2);
     static int getHeight(QNode *&n);
     static int balanceFactor(QNode *&n);
-    
+    static void inOrder(QNode *n);
     
     QNode* removeMax(QNode *&n);
     QNode* removeMin(QNode *&n);
     
     
     
-    QNode *rotateLeft(QNode *n);
-    QNode *rotateRight(QNode *n);
-    int checkHeight(QNode *n);
-    void checkProperties(QNode *n, QNode *max, QNode *min);
-public:
+    static QNode *rotateLeft(QNode *n);
+    static QNode *rotateRight(QNode *n);
+    static int checkHeight(QNode *n);
+    static void checkProperties(QNode *n, QNode *max, QNode *min);
     ConcatenableQueue();
     explicit ConcatenableQueue(Point p);
     ~ConcatenableQueue();

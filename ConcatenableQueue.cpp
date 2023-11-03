@@ -7,6 +7,7 @@
 
 #include "ConcatenableQueue.h"
 #include <cassert>
+#include <iostream>
 
 
 ConcatenableQueue::ConcatenableQueue() = default;
@@ -70,6 +71,12 @@ ConcatenableQueue::QNode *ConcatenableQueue::join(ConcatenableQueue::QNode *&T1,
  */
 ConcatenableQueue::QNode *ConcatenableQueue::joinRight(QNode *&T1, Angle &k,
                                                        QNode *&T2) {
+    if (T1 == nullptr) { 
+        // Edge case that only occurs when T2 is a null pointer
+        // And the minimum height node on the right spine of original T1 is one (i.e has a left child but no right child) 
+        // Thus we have gone to the null pointer right child and should now return a node with value k
+        return new QNode(k);
+    }
     QNode *l = T1->left;
     QNode *c = T1->right;
     if (c->height <= T2->height + 1) { // T2->height <= c->height because we stop ASAP
@@ -167,6 +174,19 @@ void ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *r
 
 int ConcatenableQueue::balanceFactor(ConcatenableQueue::QNode *&n) {
     return getHeight(n->left) - getHeight(n->right);
+}
+
+void ConcatenableQueue::inOrder(ConcatenableQueue::QNode *n) {
+    if (n == nullptr) return;
+    inOrder(n->left);
+    std::cout << n->angle << std::endl;
+    inOrder(n->right);
+
+}
+
+ConcatenableQueue::QNode *
+ConcatenableQueue::joinLeft(ConcatenableQueue::QNode *&T1, Angle &k, ConcatenableQueue::QNode *&T2) {
+    return nullptr;
 }
 
 ConcatenableQueue::QNode::QNode(ConcatenableQueue::QNode *l, Angle a, ConcatenableQueue::QNode *r) {

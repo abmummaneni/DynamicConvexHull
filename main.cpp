@@ -9,14 +9,16 @@
 #include "ConcatenableQueue.h"
 
 using namespace std;
+using QNode = ConcatenableQueue::QNode;
 
 void angleTest();
+void CQueueTest();
+void ttreTest();
 
 int main() {
-    angleTest();
+    CQueueTest();
     return 0;
 }
-
 void angleTest() {
     // create a vector of angles representing the bottom of the unit circle
     // bottom of x^2 + y^2 = 1
@@ -81,5 +83,10 @@ void ttreTest() {
 }
 
 void CQueueTest() {
-    
+    ConcatenableQueue q(Point(0, 0));
+    ConcatenableQueue q2(Point(1, 1));
+    Angle a = Angle(Point (0.5,0.5));
+    QNode *n = ConcatenableQueue::join(q.root, a, q2.root);
+    ConcatenableQueue::inOrder(n);
+    ConcatenableQueue::checkProperties(n, nullptr, nullptr);
 }
