@@ -43,12 +43,14 @@ ConcatenableQueue::QNode *ConcatenableQueue::join2(QNode *&T1, QNode *&T1Max, QN
  * @param T2 The "right" tree to be joined.
  * @return A pointer to the new merged tree.
  */
-ConcatenableQueue::QNode *ConcatenableQueue::join(ConcatenableQueue::QNode *&T1, Angle &k, 
-                                                  ConcatenableQueue::QNode *&T2) {
+ConcatenableQueue::QNode *ConcatenableQueue::join(QNode *T1, QNode *k, QNode *T2) {
     int t1Height = getHeight(T1);
     int t2Height = getHeight(T2);
     if (t1Height == t2Height) {
-        return new QNode(T1, k, T2);
+        k->left = T1;
+        k->right = T2;
+        updateHeight(k);
+        return k;
     }
     if (t1Height > t2Height) {
         return joinRight(T1, k, T2);
@@ -69,31 +71,72 @@ ConcatenableQueue::QNode *ConcatenableQueue::join(ConcatenableQueue::QNode *&T1,
  * child T2. Rotations and getHeight updates are performed as necessary to maintain the AVL property.
  * 
  */
-ConcatenableQueue::QNode *ConcatenableQueue::joinRight(QNode *&T1, Angle &k,
-                                                       QNode *&T2) {
-    if (T1 == nullptr) { 
+ConcatenableQueue::QNode *ConcatenableQueue::joinRight(QNode *T1, QNode *k,
+                                                       QNode *T2) {
+    if (T1 == nullptr) {
         // Edge case that only occurs when T2 is a null pointer
         // And the minimum height node on the right spine of original T1 is one (i.e has a left child but no right child) 
         // Thus we have gone to the null pointer right child and should now return a node with value k
-        return new QNode(k);
+        k->left = k->right = nullptr;
+        return k;
     }
     QNode *l = T1->left;
     QNode *c = T1->right;
-    if (c->height <= T2->height + 1) { // T2->height <= c->height because we stop ASAP
-        QNode *connection = new QNode(c, k, T2);
-        if (getHeight(connection) <= getHeight(l) + 1) { // If T1 is still balanced
-            T1->right = connection;
+    if (getHeight(c) <= getHeight(T2) + 1) { // T2->height <= c->height because we stop ASAP
+        k->left = c;
+        k->right = T2;
+        updateHeight(k);
+        if (getHeight(k) <= getHeight(l) + 1) { // If T1 is still balanced
+            T1->right = k;
+            updateHeight(T1);
             return T1;
         } else { // T1 is right heavy. Since T2->height <= c->height we RL rotate
-            T1->right = rotateRight(connection);
+            T1->right = rotateRight(k);
+            updateHeight(T1);
             return rotateLeft(T1);
         }
     }
     T1->right = joinRight(c, k, T2);
     if (getHeight(T1->right) <= getHeight(l) + 1) { // If T1 is still balanced
+        updateHeight(T1);
         return T1;
     } else { // T1 is right heavy, but we know this is an RR case since now at an ancestor
+        updateHeight(T1);
         return rotateLeft(T1);
+    }
+}
+
+ConcatenableQueue::QNode *
+ConcatenableQueue::joinLeft(QNode *T1, QNode *k, QNode *T2) {
+    if (T2 == nullptr) { // Edge case that only occurs when T1 is a null pointer
+        // And the maximum height node on the left spine of original T2 is one (i.e has a right child but no left child) 
+        // Thus we have gone to the null pointer left child and should now return a node with value k
+        k->left = k->right = nullptr;
+        return k;
+    }
+    QNode *c = T2->left;
+    QNode *r = T2->right;
+    if (getHeight(c) <= getHeight(T1) + 1) { // T1->height <= c->height because we stop ASAP
+        k->left = T1;
+        k->right = c;
+        updateHeight(k);
+        if (getHeight(k) <= getHeight(r) + 1) { // If T2 is still balanced
+            T2->left = k;
+            updateHeight(T2);
+            return T2;
+        } else { // T2 is left heavy. Since T1->height <= c->height we LR rotate
+            T2->left = rotateLeft(k);
+            updateHeight(T2);
+            return rotateRight(T2);
+        }
+    }
+    T2->left = joinLeft(T1, k, c);
+    if (getHeight(T2->left) <= getHeight(r) + 1) { // If T2 is still balanced
+        updateHeight(T2);
+        return T2;
+    } else { // T2 is left heavy, but we know this is an LL case since now at an ancestor
+        updateHeight(T2);
+        return rotateRight(T2);
     }
 }
 
@@ -146,29 +189,66 @@ int ConcatenableQueue::checkHeight(ConcatenableQueue::QNode *n) {
     return std::max(checkHeight(n->left), checkHeight(n->right)) + 1;
 }
 
-void ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right) {
+using
+enum Angle::Cases;
+
+std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
+ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right) {
     QNode *l = left->root;
     QNode *r = right->root;
-    Angle::Cases lCase = l->angle.getCase(&r->angle.middle, Angle::Left);
-    Angle::Cases rCase = r->angle.getCase(&l->angle.middle, Angle::Right);
-    if (lCase == Angle::Supporting and rCase == Angle::Supporting) { // Terminating Case
+    for (auto [lCase, rCase] = Angle::getCases(l->angle, r->angle);
+         not(lCase == Supporting and rCase == Supporting);
+         std::tie(lCase, rCase) = Angle::getCases(l->angle, r->angle)) {
 
-    } else if (lCase == Angle::Supporting) {
-        r = (rCase == Angle::Concave) ? r->left : r->right;
-    } else if (rCase == Angle::Supporting) {
-        l = (lCase == Angle::Concave) ? l->right : l->left;
-    } else if (lCase == Angle::Reflex and rCase == Angle::Reflex) {
-        l = l->left;
-        r = r->right;
-    } else if (lCase == Angle::Concave and rCase == Angle::Reflex) {
-        r = r->right;
-    } else if (lCase == Angle::Reflex and rCase == Angle::Concave) {
-        l = l->left;
-    } else if (lCase == Angle::Concave and rCase == Angle::Concave) { // Complex case!
+        if (lCase == Supporting) {
+            r = (rCase == Concave) ? r->left : r->right;
+        } else if (rCase == Supporting) {
+            l = (lCase == Concave) ? l->right : l->left;
+        } else if (lCase == Reflex and rCase == Reflex) {
+            l = l->left;
+            r = r->right;
+        } else if (lCase == Concave and rCase == Reflex) {
+            r = r->right;
+        } else if (lCase == Reflex and rCase == Concave) {
+            l = l->left;
+        } else if (lCase == Concave and rCase == Concave) { // Complex case!
+            Point l1 = l->angle.middle;
+            Point l2 = l->angle.right;
+            
+            Point r1 = r->angle.middle;
+            Point r2 = r->angle.left;
+            
+            double midLine = 0.5 * (left->MAX->angle.middle.x + right->min->angle.middle.x);
+            
+            //calculate the intersection point of l1 l2 and r1 r2
+            // al * x + bl * y = cl
+            // ar * x + br * y = cr
+            // al * br * x + bl * br * y = cl * br (multiply by br)
+            // ar * bl * x + br * bl * y = cr * bl (multiply by bl)
+            // (al * br - ar * bl) * x = cl * br - cr * bl (subtract)
+            // x = (cl * br - cr * bl) / (al * br - ar * bl) 
+            // (fun fact denominator is the determinant, consequently if it is 0 then the lines are parallel) 
+            // TODO: Expand to non general position assumption (lines are vertical and thus parallel if they have the same x value) 
+            
+            
+            double al = l2.y - l1.y;
+            double bl = l1.x - l2.x;
+            double cl = al * l1.x + bl * l1.y;
+            
+            double ar = r2.y - r1.y;
+            double br = r1.x - r2.x;
+            double cr = ar * r1.x + br * r1.y;
+            
+            double x = (cl * br - cr * bl) / (al * br - ar * bl);
 
+            if (x < midLine) {
+                l = l->right;
+            } else {
+                r = r->left;
+            }
+        }
     }
-
-
+    return {l, r};
 }
 
 
@@ -184,10 +264,36 @@ void ConcatenableQueue::inOrder(ConcatenableQueue::QNode *n) {
 
 }
 
-ConcatenableQueue::QNode *
-ConcatenableQueue::joinLeft(ConcatenableQueue::QNode *&T1, Angle &k, ConcatenableQueue::QNode *&T2) {
-    return nullptr;
+
+void ConcatenableQueue::updateHeight(ConcatenableQueue::QNode *&n) {
+    n->height = std::max(getHeight(n->left), getHeight(n->right)) + 1;
 }
+
+/**
+ * @brief Splits the tree rooted at T into two parts, a tree of values lower than k, and a tree of values higher than k.
+ * @param T - The tree to split
+ * @param belongsToRight - A function that takes an angle and returns true if the angle belongs to the right tree.
+ * @return The root of the left and right trees created by the division.
+ */
+std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
+ConcatenableQueue::split(ConcatenableQueue::QNode *T, bool (*belongsToRight)(Angle a)) {
+    if (T == nullptr) {
+        return {nullptr, nullptr};
+    }
+    if (belongsToRight(T->angle)) {
+        // Moving left, know that T and everything right belongs to the Right tree
+        auto [L, r] = split(T->left, belongsToRight);
+        // Merge T->Right with the remaining nodes belonging to the right tree (r), using T as a middle value
+        auto R = join(r, T, T->right);
+        return {L, R};
+    } else {
+        auto [l, R] = split(T->right, belongsToRight);
+        auto L = join(T->left, T, l);
+        return {L, R};
+    }
+
+}
+
 
 ConcatenableQueue::QNode::QNode(ConcatenableQueue::QNode *l, Angle a, ConcatenableQueue::QNode *r) {
     left = l;

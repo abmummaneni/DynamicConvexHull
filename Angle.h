@@ -24,6 +24,7 @@ public:
     Angle() = default;
     
     Cases getCase(Point *p, Side side);
+    static std::pair<Cases, Cases> getCases(Angle leftAngle, Angle rightAngle);
     double getAngle(Point &a, Point &b, Point &c);
 
     friend std::ostream &operator<<(std::ostream &os, const Angle &angle);

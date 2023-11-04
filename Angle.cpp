@@ -90,3 +90,8 @@ bool Angle::operator<=(const Angle &rhs) const {
 bool Angle::operator>=(const Angle &rhs) const {
     return !(*this < rhs);
 }
+
+std::pair<Angle::Cases, Angle::Cases> Angle::getCases(Angle leftAngle, Angle rightAngle) {
+    return {leftAngle.getCase(&rightAngle.middle, Angle::Left),
+            rightAngle.getCase(&leftAngle.middle, Angle::Right)};
+}

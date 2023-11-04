@@ -11,53 +11,74 @@
 #include "Point.h"
 #include <vector>
 #include "Angle.h"
+
 class ConcatenableQueue {
 public:
-    struct QNode{
+    struct QNode {
         Angle angle;
         QNode *left;
         QNode *right;
         int height;
-        
+
         QNode(Angle a);
-        QNode(QNode *l,  Angle a, QNode *r);
+
+        QNode(QNode *l, Angle a, QNode *r);
+
         QNode() = default;
 
     };
+
     std::vector<Angle> hull;
     Angle *leftBridge;
     Angle *rightBridge;
+    QNode *MAX;
+    QNode *min;
     QNode *root;
-    
-    
-    void split(QNode *&k);
+
+
+    static std::pair<QNode *, QNode *> split(QNode *T, bool (*belongsToRight)(Angle a));
+
     QNode *join2(QNode *&T1, QNode *&T1Max, QNode *&T2Min, QNode *&T2);
-    static QNode *join(QNode *&T1, Angle &k,  QNode *&T2);
-    static QNode *joinRight(QNode *&T1, Angle &k, QNode *&T2);
-    static QNode *joinLeft(QNode *&T1, Angle &k, QNode *&T2);
+
+    static QNode *join(QNode *T1, QNode *k, QNode *T2);
+
+    static QNode *joinRight(QNode *T1, QNode *k, QNode *T2);
+
+    static QNode *joinLeft(QNode *T1, QNode *k, QNode *T2);
+
     static int getHeight(QNode *&n);
+
     static int balanceFactor(QNode *&n);
+
     static void inOrder(QNode *n);
-    
-    QNode* removeMax(QNode *&n);
-    QNode* removeMin(QNode *&n);
-    
-    
-    
+
+    static void updateHeight(QNode *&n);
+
+    QNode *removeMax(QNode *&n);
+
+    QNode *removeMin(QNode *&n);
+
+
     static QNode *rotateLeft(QNode *n);
+
     static QNode *rotateRight(QNode *n);
+
     static int checkHeight(QNode *n);
+
     static void checkProperties(QNode *n, QNode *max, QNode *min);
+
     ConcatenableQueue();
+
     explicit ConcatenableQueue(Point p);
+
     ~ConcatenableQueue();
 
     void concatenate(ConcatenableQueue *left, ConcatenableQueue *right);
-    
+
     void splitHull(ConcatenableQueue *&left, ConcatenableQueue *&right);
-    
-    void findBridge(ConcatenableQueue *left, ConcatenableQueue *right);
-    
+
+    std::pair<QNode *, QNode *> findBridge(ConcatenableQueue *left, ConcatenableQueue *right);
+
 
 };
 

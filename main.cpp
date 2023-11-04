@@ -85,8 +85,58 @@ void ttreTest() {
 void CQueueTest() {
     ConcatenableQueue q(Point(0, 0));
     ConcatenableQueue q2(Point(1, 1));
-    Angle a = Angle(Point (0.5,0.5));
-    QNode *n = ConcatenableQueue::join(q.root, a, q2.root);
+    ConcatenableQueue a(Point(0.5, 0.5));
+    QNode *n = ConcatenableQueue::join(q.root, a.root, q2.root);
     ConcatenableQueue::inOrder(n);
     ConcatenableQueue::checkProperties(n, nullptr, nullptr);
+    
+    ConcatenableQueue q3(Point(2, 2));
+    ConcatenableQueue q4(Point(3, 3));
+    ConcatenableQueue a2(Point(2.5, 2.5));
+    QNode *n2 = ConcatenableQueue::join(q3.root, a2.root, q4.root);
+    ConcatenableQueue::inOrder(n2);
+    ConcatenableQueue::checkProperties(n2, nullptr, nullptr);
+    
+    cout << "n3" << endl;
+    ConcatenableQueue a3(Point(1.5, 1.5));
+    QNode *n3 = ConcatenableQueue::join(n, a3.root, n2);
+    ConcatenableQueue::inOrder(n3);
+    ConcatenableQueue::checkProperties(n3, nullptr, nullptr);
+    
+   
+    ConcatenableQueue q5(Point(4, 4));
+    ConcatenableQueue q6(Point(5, 5));
+    ConcatenableQueue a4(Point(4.5, 4.5));
+    QNode *n4 = ConcatenableQueue::join(q5.root, a4.root, q6.root);
+    ConcatenableQueue::inOrder(n4);
+    ConcatenableQueue::checkProperties(n4, nullptr, nullptr);
+    
+    
+    cout << "n5" << endl;
+    ConcatenableQueue a5(Point(3.5, 3.5));
+    QNode *n5 = ConcatenableQueue::join(n3, a5.root, n4);
+    ConcatenableQueue::inOrder(n5);
+    ConcatenableQueue::checkProperties(n5, nullptr, nullptr);
+    
+    ConcatenableQueue q7(Point(-2, -2));
+    ConcatenableQueue q8(Point(-1, -1));
+    ConcatenableQueue a6(Point(-1.5, -1.5));
+    QNode *n6 = ConcatenableQueue::join(q7.root, a6.root, q8.root);
+    ConcatenableQueue::inOrder(n6);
+    ConcatenableQueue::checkProperties(n6, nullptr, nullptr);
+    
+    cout << "n7" << endl;
+    ConcatenableQueue a7(Point(-0.5, -0.5));
+    QNode *n7 = ConcatenableQueue::join(n6, a7.root, n5);
+    ConcatenableQueue::inOrder(n7);
+    ConcatenableQueue::checkProperties(n7, nullptr, nullptr);
+    
+    auto [left, right] = ConcatenableQueue::split(n7, [](Angle a) { return a > Angle(Point(1,1)); });
+    cout << "left" << endl;
+    ConcatenableQueue::inOrder(left);
+    ConcatenableQueue::checkProperties(left, nullptr, nullptr);
+    cout << "right" << endl;
+    ConcatenableQueue::inOrder(right);
+    ConcatenableQueue::checkProperties(right, nullptr, nullptr);
+    
 }
