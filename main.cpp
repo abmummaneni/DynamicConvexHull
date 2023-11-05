@@ -14,9 +14,10 @@ using QNode = ConcatenableQueue::QNode;
 void angleTest();
 void CQueueTest();
 void ttreTest();
+void intersectionTest();
 
 int main() {
-    CQueueTest();
+    intersectionTest();
     return 0;
 }
 void angleTest() {
@@ -139,4 +140,16 @@ void CQueueTest() {
     ConcatenableQueue::inOrder(right);
     ConcatenableQueue::checkProperties(right, nullptr, nullptr);
     
+}
+
+void intersectionTest(){
+    Point l1 = Point(0, 0);
+    Point l2 = Point(1, -1);
+    Point r1 = Point(3, 3);
+    Point r2 = Point(2, 0);
+    
+    double s = ((r1.x - l1.x) * (l2.y - l1.y) - (r1.y - l1.y) * (l2.x - l1.x)) /
+               ((r2.y - r1.y) * (l2.x - l1.x) - (r2.x - r1.x) * (l2.y - l1.y));
+    double x = r1.x + s * (r2.x - r1.x);
+    cout << x << endl;
 }

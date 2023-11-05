@@ -31,8 +31,6 @@ public:
     std::vector<Angle> hull;
     Angle *leftBridge;
     Angle *rightBridge;
-    QNode *MAX;
-    QNode *min;
     QNode *root;
 
 
@@ -47,6 +45,9 @@ public:
     static QNode *joinLeft(QNode *T1, QNode *k, QNode *T2);
 
     static int getHeight(QNode *&n);
+    
+    static Angle *getMax(QNode *&n);
+    static Angle *getMin(QNode *&n);
 
     static int balanceFactor(QNode *&n);
 
@@ -54,9 +55,8 @@ public:
 
     static void updateHeight(QNode *&n);
 
-    QNode *removeMax(QNode *&n);
-
-    QNode *removeMin(QNode *&n);
+    static std::pair<QNode *, QNode *> removeMax(QNode *n);
+    static std::pair<QNode *, QNode *> removeMin(QNode *n);
 
 
     static QNode *rotateLeft(QNode *n);

@@ -196,6 +196,9 @@ std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
 ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right) {
     QNode *l = left->root;
     QNode *r = right->root;
+    double minX = getMin(l)->middle.x;
+    double maxX = getMax(r)->middle.x;
+    double midLine = 0.5 * (minX + maxX);
     for (auto [lCase, rCase] = Angle::getCases(l->angle, r->angle);
          not(lCase == Supporting and rCase == Supporting);
          std::tie(lCase, rCase) = Angle::getCases(l->angle, r->angle)) {
@@ -214,32 +217,31 @@ ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right)
         } else if (lCase == Concave and rCase == Concave) { // Complex case!
             Point l1 = l->angle.middle;
             Point l2 = l->angle.right;
-            
+
             Point r1 = r->angle.middle;
             Point r2 = r->angle.left;
-            
-            double midLine = 0.5 * (left->MAX->angle.middle.x + right->min->angle.middle.x);
-            
-            //calculate the intersection point of l1 l2 and r1 r2
-            // al * x + bl * y = cl
-            // ar * x + br * y = cr
-            // al * br * x + bl * br * y = cl * br (multiply by br)
-            // ar * bl * x + br * bl * y = cr * bl (multiply by bl)
-            // (al * br - ar * bl) * x = cl * br - cr * bl (subtract)
-            // x = (cl * br - cr * bl) / (al * br - ar * bl) 
-            // (fun fact denominator is the determinant, consequently if it is 0 then the lines are parallel) 
-            // TODO: Expand to non general position assumption (lines are vertical and thus parallel if they have the same x value) 
-            
-            
-            double al = l2.y - l1.y;
-            double bl = l1.x - l2.x;
-            double cl = al * l1.x + bl * l1.y;
-            
-            double ar = r2.y - r1.y;
-            double br = r1.x - r2.x;
-            double cr = ar * r1.x + br * r1.y;
-            
-            double x = (cl * br - cr * bl) / (al * br - ar * bl);
+
+            //Must find intersection of lines l1 l2 and r1 r2
+            // Create parametric equations 
+
+            // l1 + t(l2 - l1) = r1 + s(r2 - r1)
+            // l1.x + t(l2.x - l1.x) = r1.x + s(r2.x - r1.x)
+            // l1.y + t(l2.y - l1.y) = r1.y + s(r2.y - r1.y)
+            // Create system with unknowns t and s
+            // t(l2.x - l1.x) - s(r2.x - r1.x) = r1.x - l1.x
+            // t(l2.y - l1.y) - s(r2.y - r1.y) = r1.y - l1.y
+            // Solve for s
+            // t = (r1.x - l1.x + s(r2.x - r1.x)) / (l2.x - l1.x)
+            // t = (r1.y - l1.y + s(r2.y - r1.y)) / (l2.y - l1.y)
+            // (r1.x - l1.x + s(r2.x - r1.x)) / (l2.x - l1.x) = (r1.y - l1.y + s(r2.y - r1.y)) / (l2.y - l1.y)
+            // (r1.x - l1.x)(l2.y - l1.y) + s(r2.x - r1.x)(l2.y - l1.y) = (r1.y - l1.y)(l2.x - l1.x) + s(r2.y - r1.y)(l2.x - l1.x)
+            // s = ((r1.x - l1.x)(l2.y - l1.y) - (r1.y - l1.y)(l2.x - l1.x)) / ((r2.y - r1.y)(l2.x - l1.x) - (r2.x - r1.x)(l2.y - l1.y))
+            // Plug s back into parametric equation to get x - intersection
+            // x = r1.x + s(r2.x - r1.x)
+
+            double s = ((r1.x - l1.x) * (l2.y - l1.y) - (r1.y - l1.y) * (l2.x - l1.x)) /
+                       ((r2.y - r1.y) * (l2.x - l1.x) - (r2.x - r1.x) * (l2.y - l1.y));
+            double x = r1.x + s * (r2.x - r1.x);
 
             if (x < midLine) {
                 l = l->right;
@@ -292,6 +294,40 @@ ConcatenableQueue::split(ConcatenableQueue::QNode *T, bool (*belongsToRight)(Ang
         return {L, R};
     }
 
+}
+
+Angle *ConcatenableQueue::getMax(ConcatenableQueue::QNode *&n) {
+    if (n == nullptr) return nullptr;
+    if (n->right == nullptr) return &n->angle;
+    return getMax(n->right);
+}
+
+Angle *ConcatenableQueue::getMin(ConcatenableQueue::QNode *&n) {
+    if (n == nullptr) return nullptr;
+    if (n->left == nullptr) return &n->angle;
+    return getMin(n->left);
+}
+
+/**
+ * @brief Removes the maximum value from the tree rooted at n.
+ * @param n 
+ * @return A pointer to the new root of the tree and a pointer to the removed node.
+ * @details This function is simply a special case of split where every node belongs to the Left tree except the maximum
+ */
+std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
+ConcatenableQueue::removeMax(ConcatenableQueue::QNode *n) {
+    if (n == nullptr) return {nullptr, nullptr};
+    if (n->right == nullptr) return {n->left, n};
+    auto [L, r] = removeMax(n->right);
+    return {join(n->left, n, L), r};
+}
+
+std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
+ConcatenableQueue::removeMin(ConcatenableQueue::QNode *n) {
+    if (n == nullptr) return {nullptr, nullptr};
+    if (n->left == nullptr) return {n, n->right};
+    auto [l, R] = removeMin(n->left);
+    return {l, join(R, n, n->right)};
 }
 
 
