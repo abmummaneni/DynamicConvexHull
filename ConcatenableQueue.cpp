@@ -18,7 +18,27 @@ void ConcatenableQueue::concatenate(ConcatenableQueue *left, ConcatenableQueue *
 
 }
 
-void ConcatenableQueue::splitHull(ConcatenableQueue *&left, ConcatenableQueue *&right) {
+void ConcatenableQueue::splitHull(ConcatenableQueue *left, ConcatenableQueue *right) {
+    auto [L, R] = split(root, [&](Angle a) { return a >= rightBridge->angle; });
+    root = nullptr;
+    if (left->root == nullptr) {
+        left->root = L;
+        leftBridge->angle.right = leftBridge->angle.middle;
+        leftBridge->angle.right.y += 1;
+    } else {
+        auto [leftFragmentMin, leftFragmentRoot] = removeMin(left->root);
+        leftBridge->angle.right = leftFragmentMin->angle.middle;
+        left->root = join(L, leftFragmentMin, leftFragmentRoot);
+    }
+    if (right->root == nullptr) {
+        right->root = R;
+        rightBridge->angle.left = rightBridge->angle.middle;
+        rightBridge->angle.left.y += 1;
+    } else {
+        auto [rightFragmentRoot, rightFragmentMax] = removeMax(right->root);
+        rightBridge->angle.left = rightFragmentMax->angle.middle;
+        right->root = join(rightFragmentRoot, rightFragmentMax, R);
+    }
 
 }
 
@@ -26,11 +46,17 @@ ConcatenableQueue::ConcatenableQueue(Point p) {
     root = new QNode(Angle(p));
 }
 
-ConcatenableQueue::QNode *ConcatenableQueue::join2(QNode *&T1, QNode *&T1Max, QNode *&T2Min, QNode *&T2) {
+ConcatenableQueue::QNode *ConcatenableQueue::join2(QNode *T1, QNode *T2) {
     if (T1 == nullptr) return T2;
     if (T2 == nullptr) return T1;
     int t1Height = getHeight(T1);
     int t2Height = getHeight(T2);
+    if (t1Height > t2Height) {
+        auto [_T1, middle] = removeMax(T1);
+        return join(_T1, middle, T2);
+    }
+    auto [middle, _T2] = removeMin(T2);
+    return join(T1, middle, _T2);
 
 }
 
@@ -196,13 +222,24 @@ std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
 ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right) {
     QNode *l = left->root;
     QNode *r = right->root;
-    double minX = getMin(l)->middle.x;
-    double maxX = getMax(r)->middle.x;
-    double midLine = 0.5 * (minX + maxX);
+    assert(l != nullptr and r != nullptr);
+    double maxLeft = getMax(l)->angle.middle.x;
+    double minRight = getMin(r)->angle.middle.x;
+    double midLine = 0.5 * (maxLeft + minRight);
     for (auto [lCase, rCase] = Angle::getCases(l->angle, r->angle);
          not(lCase == Supporting and rCase == Supporting);
          std::tie(lCase, rCase) = Angle::getCases(l->angle, r->angle)) {
-
+        if (lCase == Degenerate){
+            lCase = Supporting;
+            l = getMax(l);
+        }
+        if (rCase == Degenerate){
+            rCase = Supporting;
+            r = getMin(r);
+        }
+        if (lCase == Supporting and rCase == Supporting){
+            break;
+        }
         if (lCase == Supporting) {
             r = (rCase == Concave) ? r->left : r->right;
         } else if (rCase == Supporting) {
@@ -249,6 +286,7 @@ ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right)
                 r = r->left;
             }
         }
+        assert(l != nullptr and r != nullptr);
     }
     return {l, r};
 }
@@ -271,40 +309,16 @@ void ConcatenableQueue::updateHeight(ConcatenableQueue::QNode *&n) {
     n->height = std::max(getHeight(n->left), getHeight(n->right)) + 1;
 }
 
-/**
- * @brief Splits the tree rooted at T into two parts, a tree of values lower than k, and a tree of values higher than k.
- * @param T - The tree to split
- * @param belongsToRight - A function that takes an angle and returns true if the angle belongs to the right tree.
- * @return The root of the left and right trees created by the division.
- */
-std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
-ConcatenableQueue::split(ConcatenableQueue::QNode *T, bool (*belongsToRight)(Angle a)) {
-    if (T == nullptr) {
-        return {nullptr, nullptr};
-    }
-    if (belongsToRight(T->angle)) {
-        // Moving left, know that T and everything right belongs to the Right tree
-        auto [L, r] = split(T->left, belongsToRight);
-        // Merge T->Right with the remaining nodes belonging to the right tree (r), using T as a middle value
-        auto R = join(r, T, T->right);
-        return {L, R};
-    } else {
-        auto [l, R] = split(T->right, belongsToRight);
-        auto L = join(T->left, T, l);
-        return {L, R};
-    }
 
-}
-
-Angle *ConcatenableQueue::getMax(ConcatenableQueue::QNode *&n) {
+ConcatenableQueue::QNode *ConcatenableQueue::getMax(ConcatenableQueue::QNode *n) {
     if (n == nullptr) return nullptr;
-    if (n->right == nullptr) return &n->angle;
+    if (n->right == nullptr) return n;
     return getMax(n->right);
 }
 
-Angle *ConcatenableQueue::getMin(ConcatenableQueue::QNode *&n) {
+ConcatenableQueue::QNode *ConcatenableQueue::getMin(ConcatenableQueue::QNode *n) {
     if (n == nullptr) return nullptr;
-    if (n->left == nullptr) return &n->angle;
+    if (n->left == nullptr) return n;
     return getMin(n->left);
 }
 
@@ -330,6 +344,19 @@ ConcatenableQueue::removeMin(ConcatenableQueue::QNode *n) {
     return {l, join(R, n, n->right)};
 }
 
+void ConcatenableQueue::mergeHulls(ConcatenableQueue *left, ConcatenableQueue *right) {
+    std::tie(leftBridge, rightBridge) = findBridge(left, right);
+    Angle &leftBridgeAngle = leftBridge->angle;
+    Angle &rightBridgeAngle = rightBridge->angle;
+    auto [leftLeft, leftRight] = split(left->root, [&](Angle a) { return a > leftBridgeAngle; });
+    auto [rightLeft, rightRight] = split(right->root, [&](Angle a) { return a >= rightBridgeAngle; });
+    left->root = leftRight;
+    right->root = rightLeft;
+    leftBridgeAngle.right = rightBridgeAngle.middle;
+    rightBridgeAngle.left = leftBridgeAngle.middle;
+    root = join2(leftLeft, rightRight);
+}
+
 
 ConcatenableQueue::QNode::QNode(ConcatenableQueue::QNode *l, Angle a, ConcatenableQueue::QNode *r) {
     left = l;
@@ -344,4 +371,15 @@ ConcatenableQueue::QNode::QNode(Angle a) {
     height = 0;
     left = nullptr;
     right = nullptr;
+}
+
+void ConcatenableQueue::getPoints(ConcatenableQueue::QNode *n, std::vector<Point> &points) {
+    if (n == nullptr) return;
+    getPoints(n->left, points);
+    points.push_back(n->angle.middle);
+    getPoints(n->right, points);
+}
+
+bool ConcatenableQueue::isDegenerate(ConcatenableQueue::QNode *n) {
+    return n->angle.left.x == n->angle.right.x;
 }

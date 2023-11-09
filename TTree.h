@@ -18,7 +18,7 @@ private:
     static const bool BLACK = true;
     struct TNode {
         Point point;
-        ConcatenableQueue *lower_hull;
+        ConcatenableQueue *lower_hull{};
         ConcatenableQueue *upper_hull;
         Point *breakPoint;
         bool isLeaf; 
@@ -48,6 +48,8 @@ private:
     
     void split(TNode *&n);
     void merge(TNode *&n);
+    void ascend(TNode *&n);
+    void descend(TNode *&n);
     
     TNode *insert(Point &p, TNode *curr);
     TNode *remove(Point &p, TNode *n);
@@ -71,6 +73,10 @@ public:
     bool remove(Point p);
     void displayTree();
     void checkProperties();
+    void ascend();
+    void descend();
+    void printLowerHull();
+    std::vector<Point> getPoints();
     
 };
 

@@ -11,7 +11,7 @@
 #include <queue>
 #include <cassert>
 #include <cmath>
-
+using QNode = ConcatenableQueue::QNode;
 /**
  * @brief Constructs a leaf node with the given point
  * @param p The point to be stored in the leaf node
@@ -25,6 +25,7 @@ TTree::TNode::TNode(Point p, TTree::TNode *par = nullptr) {
     left = right = nullptr;
     parent = par;
     lMax = rMin = this;
+    lower_hull = new ConcatenableQueue(p);
 }
 
 /**
@@ -43,6 +44,7 @@ TTree::TNode::TNode(TTree::TNode *par, TTree::TNode *l, TTree::TNode *r) {
     rMin = r->lMax;
     l->parent = this;
     r->parent = this;
+    lower_hull = new ConcatenableQueue();
 }
 
 bool TTree::TNode::operator<(const TTree::TNode &rhs) const {
@@ -92,11 +94,12 @@ TTree::TNode *TTree::insert(Point &p, TTree::TNode *curr) {
         fixUp(newInternal);
         return newLeaf;
     } else {
+        descend(curr);
         if (p < curr->lMax->point) {
             return insert(p, curr->left);
         } else {
             if (p < curr->rMin->point) {
-                TNode *newLeaf = insert(p, curr->rMin);
+                TNode *newLeaf = insert(p, curr->right);
                 curr->rMin = newLeaf;
             } else {
                 return insert(p, curr->right);
@@ -114,6 +117,7 @@ TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
         if (n == root) {
             root = nullptr;
             delete n;
+            n = nullptr;
             return nullptr;
         }
 
@@ -130,20 +134,31 @@ TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
         }
         TNode *par = n->parent;
         delete n;
+        n = nullptr;
         return par;
         
 
     } else {
+        descend(n);
         if (p == n->lMax->point){
-            TNode *internalToDelete = remove(p, n->lMax);
-            n->lMax = internalToDelete->lMax;
-            delete internalToDelete;
+            TNode *internalToDelete = remove(p, n->left);
+            if (n != nullptr) {
+                n->lMax = internalToDelete->lMax;
+                delete internalToDelete; 
+            } else {
+                return internalToDelete;
+            }
             
         }
         else if (p == n->rMin->point){
-            TNode *internalToDelete = remove(p, n->rMin);
-            n->rMin = internalToDelete->rMin;
-            delete internalToDelete;
+            TNode *internalToDelete = remove(p, n->right);
+            if (n != nullptr){
+                n->rMin = internalToDelete->rMin;
+                delete internalToDelete;
+            } else {
+                return internalToDelete;
+            }
+            
         }
         else if (p < n->lMax->point) {
             return remove(p, n->left);
@@ -253,10 +268,13 @@ void TTree::fixUp(TTree::TNode *curr) {
 
 void TTree::insert(Point p) {
     insert(p, root);
+    ascend(root);
 }
 
 bool TTree::remove(Point p) {
-    return remove(p, root);
+    bool found = remove(p, root);
+    ascend(root);
+    return found;
 }
 
 // Pretty Prints all the Internal and Leaf nodes as they would appear in the tree with proper formatting and spacing.
@@ -455,3 +473,44 @@ TTree::TNode *TTree::findMin(TTree::TNode *n) {
     }
     return findMin(n->left);
 }
+
+void TTree::ascend(TTree::TNode *&n) {
+    if (n->isLeaf) {
+        return;
+    }
+    if (n->left->lower_hull->root == nullptr) {
+        ascend(n->left);
+    }
+    if (n->right->lower_hull->root == nullptr) {
+        ascend(n->right);
+    }
+    n->lower_hull->mergeHulls(n->left->lower_hull, n->right->lower_hull);
+}
+
+void TTree::ascend() {
+    ascend(root);
+}
+
+void TTree::printLowerHull() {
+    ConcatenableQueue::inOrder(root->lower_hull->root);
+}
+
+std::vector<Point> TTree::getPoints() {
+    std::vector<Point> points;
+    ConcatenableQueue::getPoints(root->lower_hull->root, points);
+    return points;
+}
+
+void TTree::descend() {
+    descend(root);
+}
+
+void TTree::descend(TTree::TNode *&n) {
+    if (n->isLeaf) {
+        return;
+    }
+    ConcatenableQueue *lChildHull = n->left->lower_hull; 
+    ConcatenableQueue *rChildHull = n->right->lower_hull;
+    n->lower_hull->splitHull(lChildHull, rChildHull);
+}
+
