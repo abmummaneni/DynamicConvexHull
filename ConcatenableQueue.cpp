@@ -24,7 +24,7 @@ void ConcatenableQueue::splitHull(ConcatenableQueue *left, ConcatenableQueue *ri
     if (left->root == nullptr) {
         left->root = L;
         leftBridge->angle.right = leftBridge->angle.middle;
-        leftBridge->angle.right.y += 1;
+        leftBridge->angle.right.y = INFINITY;
     } else {
         auto [leftFragmentMin, leftFragmentRoot] = removeMin(left->root);
         leftBridge->angle.right = leftFragmentMin->angle.middle;
@@ -33,7 +33,7 @@ void ConcatenableQueue::splitHull(ConcatenableQueue *left, ConcatenableQueue *ri
     if (right->root == nullptr) {
         right->root = R;
         rightBridge->angle.left = rightBridge->angle.middle;
-        rightBridge->angle.left.y += 1;
+        rightBridge->angle.left.y = INFINITY;
     } else {
         auto [rightFragmentRoot, rightFragmentMax] = removeMax(right->root);
         rightBridge->angle.left = rightFragmentMax->angle.middle;
@@ -226,20 +226,8 @@ ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right)
     double maxLeft = getMax(l)->angle.middle.x;
     double minRight = getMin(r)->angle.middle.x;
     double midLine = 0.5 * (maxLeft + minRight);
-    for (auto [lCase, rCase] = Angle::getCases(l->angle, r->angle);
-         not(lCase == Supporting and rCase == Supporting);
-         std::tie(lCase, rCase) = Angle::getCases(l->angle, r->angle)) {
-        if (lCase == Degenerate){
-            lCase = Supporting;
-            l = getMax(l);
-        }
-        if (rCase == Degenerate){
-            rCase = Supporting;
-            r = getMin(r);
-        }
-        if (lCase == Supporting and rCase == Supporting){
-            break;
-        }
+    auto [lCase, rCase] = Angle::getCases(l->angle, r->angle);
+    while (lCase != Supporting or rCase != Supporting) {
         if (lCase == Supporting) {
             r = (rCase == Concave) ? r->left : r->right;
         } else if (rCase == Supporting) {
@@ -258,23 +246,23 @@ ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right)
             Point r1 = r->angle.middle;
             Point r2 = r->angle.left;
 
-            //Must find intersection of lines l1 l2 and r1 r2
-            // Create parametric equations 
-
-            // l1 + t(l2 - l1) = r1 + s(r2 - r1)
-            // l1.x + t(l2.x - l1.x) = r1.x + s(r2.x - r1.x)
-            // l1.y + t(l2.y - l1.y) = r1.y + s(r2.y - r1.y)
-            // Create system with unknowns t and s
-            // t(l2.x - l1.x) - s(r2.x - r1.x) = r1.x - l1.x
-            // t(l2.y - l1.y) - s(r2.y - r1.y) = r1.y - l1.y
-            // Solve for s
-            // t = (r1.x - l1.x + s(r2.x - r1.x)) / (l2.x - l1.x)
-            // t = (r1.y - l1.y + s(r2.y - r1.y)) / (l2.y - l1.y)
-            // (r1.x - l1.x + s(r2.x - r1.x)) / (l2.x - l1.x) = (r1.y - l1.y + s(r2.y - r1.y)) / (l2.y - l1.y)
-            // (r1.x - l1.x)(l2.y - l1.y) + s(r2.x - r1.x)(l2.y - l1.y) = (r1.y - l1.y)(l2.x - l1.x) + s(r2.y - r1.y)(l2.x - l1.x)
-            // s = ((r1.x - l1.x)(l2.y - l1.y) - (r1.y - l1.y)(l2.x - l1.x)) / ((r2.y - r1.y)(l2.x - l1.x) - (r2.x - r1.x)(l2.y - l1.y))
-            // Plug s back into parametric equation to get x - intersection
-            // x = r1.x + s(r2.x - r1.x)
+            /* Must find intersection of lines l1 l2 and r1 r2
+             Create parametric equations
+             l1 + t(l2 - l1) = r1 + s(r2 - r1)
+             l1.x + t(l2.x - l1.x) = r1.x + s(r2.x - r1.x)
+             l1.y + t(l2.y - l1.y) = r1.y + s(r2.y - r1.y)
+             Create system with unknowns t and s
+             t(l2.x - l1.x) - s(r2.x - r1.x) = r1.x - l1.x
+             t(l2.y - l1.y) - s(r2.y - r1.y) = r1.y - l1.y
+             Solve for s
+             t = (r1.x - l1.x + s(r2.x - r1.x)) / (l2.x - l1.x)
+             t = (r1.y - l1.y + s(r2.y - r1.y)) / (l2.y - l1.y)
+             (r1.x - l1.x + s(r2.x - r1.x)) / (l2.x - l1.x) = (r1.y - l1.y + s(r2.y - r1.y)) / (l2.y - l1.y)
+             (r1.x - l1.x)(l2.y - l1.y) + s(r2.x - r1.x)(l2.y - l1.y) = (r1.y - l1.y)(l2.x - l1.x) + s(r2.y - r1.y)(l2.x - l1.x)
+             s = ((r1.x - l1.x)(l2.y - l1.y) - (r1.y - l1.y)(l2.x - l1.x)) / ((r2.y - r1.y)(l2.x - l1.x) - (r2.x - r1.x)(l2.y - l1.y))
+             Plug s back into parametric equation to get x - intersection
+             x = r1.x + s(r2.x - r1.x)
+             */
 
             double s = ((r1.x - l1.x) * (l2.y - l1.y) - (r1.y - l1.y) * (l2.x - l1.x)) /
                        ((r2.y - r1.y) * (l2.x - l1.x) - (r2.x - r1.x) * (l2.y - l1.y));
@@ -287,6 +275,10 @@ ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right)
             }
         }
         assert(l != nullptr and r != nullptr);
+        std::tie(lCase, rCase) = Angle::getCases(l->angle, r->angle);
+    }
+    if (l->angle.middle.x == r->angle.middle.x){
+        return {getMax(l), getMin(r)};
     }
     return {l, r};
 }
@@ -380,6 +372,7 @@ void ConcatenableQueue::getPoints(ConcatenableQueue::QNode *n, std::vector<Point
     getPoints(n->right, points);
 }
 
-bool ConcatenableQueue::isDegenerate(ConcatenableQueue::QNode *n) {
-    return n->angle.left.x == n->angle.right.x;
+
+bool ConcatenableQueue::isLeaf(ConcatenableQueue::QNode *n) {
+    return (n->left == nullptr and n->right == nullptr);
 }

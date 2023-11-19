@@ -42,25 +42,64 @@ void verticalTest();
 
 void deleteTest();
 
+void insertTest();
 int main() {
-    deleteTest();
+    matplotplusplusTest();
+    // insertTest();
+    // deleteTest();
     return 0;
 }
-
+void insertTest(){
+    TTree t;
+    t.insert(50,50);
+    t.insert(40,30);
+    t.insert(10,10);
+    t.insert(20,20);
+    t.insert(40,40);
+    t.insert(80,10);
+    t.insert(80,80);
+    t.insert(40,20);
+    t.insert(50,40);
+    t.insert(30,40);
+    t.printLowerHull();
+}
 void deleteTest(){
     TTree t;
-    t.insert(Point(50,50));
+    t.insert(Point(50,60));
+    t.insert(Point(30,40));
     t.insert(Point(10,10));
-    t.insert(Point(40,30));
-    t.remove(Point(40,30));
+    t.insert(Point(80,20));
+    t.insert(Point(20,20));
+    t.insert(Point(45,45));
+    t.remove(Point(80,20));
+    t.remove(Point(45,45));
+    t.printLowerHull();
 }
 void verticalTest(){
     TTree t;
-    t.insert(Point(15,4));
     t.insert(Point(15,8));
-    t.insert(Point(15,6));
+    t.insert(Point(15,4));
+    t.insert(Point(10,2));
+    t.printLowerHull();
 }
-
+void randomInsertTest(){
+    TTree t;
+    cout << "created" << endl;
+    vector<Point> points;
+    vector<double> x;
+    vector<double> y;
+    double lower_bound = 0;
+    double upper_bound = 1;
+    std::minstd_rand gen(std::random_device{}());
+    std::weibull_distribution<double> unif(4, 2);
+    for (int i = 0; i < 100000; ++i) {
+        Point randPoint = Point(unif(gen), unif(gen));
+        points.push_back(randPoint);
+        x.push_back(randPoint.x);
+        y.push_back(randPoint.y);
+        t.insert(randPoint);
+    }
+}
 void matplotplusplusTest() {
     string input;
     double x, y;

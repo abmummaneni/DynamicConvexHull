@@ -50,6 +50,7 @@ private:
     void merge(TNode *&n);
     void ascend(TNode *&n);
     void descend(TNode *&n);
+    void descendTo(TNode *n, Point p);
     
     TNode *insert(Point &p, TNode *curr);
     TNode *remove(Point &p, TNode *n);
@@ -70,6 +71,7 @@ public:
     TTree();
     ~TTree();
     void insert(Point p);
+    void insert(double x, double y);
     bool remove(Point p);
     void displayTree();
     void checkProperties();

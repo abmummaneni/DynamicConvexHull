@@ -96,7 +96,7 @@ public:
 
     ~ConcatenableQueue();
     
-    bool isDegenerate(QNode *n);
+    bool isLeaf(QNode *n);
     void concatenate(ConcatenableQueue *left, ConcatenableQueue *right);
     
     void mergeHulls(ConcatenableQueue *left, ConcatenableQueue *right);
@@ -104,6 +104,7 @@ public:
     void splitHull(ConcatenableQueue *left, ConcatenableQueue *right);
 
     std::pair<QNode *, QNode *> findBridge(ConcatenableQueue *left, ConcatenableQueue *right);
+    
     
     friend class TTree;
 };

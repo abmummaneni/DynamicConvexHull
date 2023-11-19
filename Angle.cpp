@@ -5,6 +5,7 @@
 #include "Angle.h"
 #include <cmath>
 #include <iostream>
+#include <cassert>
 
 /**
  * @brief Determines which of the 3 cases the angle is in with respect to a line segment from p to middle
@@ -12,20 +13,23 @@
  * @return The case of the point relative to the angle
  */
 Angle::Cases Angle::getCase(Point &p) {
-    // If the angle is degenerate, i.e it is a point, than any line to it will be supporting
-    if (isDegenerate()) {
-        return Degenerate;
-    }
     // Let the points of the angle be A, B, and C from left to right
-    bool isRightOfBA = not isCCW(middle, left, p); // Is p on the right side of the closed-half plane BA
-    bool isLeftOfBC = not isCW(middle, right, p); // Is p on the left side of the closed-half plane BC
+    // Is the angle just a point (Both A and C are placeholder infinity)
+    if (left.y == INFINITY and right.y == INFINITY){
+        return Supporting;
+    }
+    
+    // Is p on the right side of the plane BA (closed if A exists, open if A is placeholder infinity)
+    bool isRightOfBA = (left.y == INFINITY) ? p.x > middle.x : not isCCW(middle, left, p);
+    // Is p on the left side of the plane BC (closed if C exists, open if C is placeholder infinity)
+    bool isLeftOfBC = (right.y == INFINITY) ? p.x < middle.x : not isCW(middle, right, p); 
     
     if (isRightOfBA and isLeftOfBC) {
         // If p is on the right side of BA and the left side of BC, then it is in the angle ABC
         return Concave;
     }
     
-    // Reflex Case, p is in the angle opposite of ABC, this is the intersection of 2 open half planes
+    // Reflex Case, p is in the angle opposite of ABC, this is the intersection of 2 half planes
     if (not isRightOfBA and not isLeftOfBC) {
         return Reflex;
     }
@@ -55,11 +59,8 @@ std::ostream &operator<<(std::ostream &os, const Angle &angle) {
 }
 
 Angle::Angle(Point p) {
-    left = p;
-    left.y += 1;
-    middle = p;
-    right = p;
-    right.y += 1;
+    left = middle = right = p;
+    left.y = right.y = INFINITY;
 }
 
 bool Angle::operator<(const Angle &rhs) const {

@@ -17,7 +17,6 @@ public:
     // The cases describe how the angle is oriented relative to the line segment
     
     Point left, middle, right;
-    double angle;
 
     Angle(Point left, Point middle, Point right);
     Angle(Point p);

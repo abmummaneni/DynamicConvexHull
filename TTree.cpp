@@ -117,7 +117,6 @@ TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
         if (n == root) {
             root = nullptr;
             delete n;
-            n = nullptr;
             return nullptr;
         }
 
@@ -134,7 +133,6 @@ TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
         }
         TNode *par = n->parent;
         delete n;
-        n = nullptr;
         return par;
         
 
@@ -142,7 +140,7 @@ TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
         descend(n);
         if (p == n->lMax->point){
             TNode *internalToDelete = remove(p, n->left);
-            if (n != nullptr) {
+            if (n != internalToDelete) {
                 n->lMax = internalToDelete->lMax;
                 delete internalToDelete; 
             } else {
@@ -152,7 +150,7 @@ TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
         }
         else if (p == n->rMin->point){
             TNode *internalToDelete = remove(p, n->right);
-            if (n != nullptr){
+            if (n != internalToDelete){
                 n->rMin = internalToDelete->rMin;
                 delete internalToDelete;
             } else {
@@ -392,7 +390,9 @@ void TTree::removeFixUp(TTree::TNode *curr) {
                 if (sibling->right->color == BLACK) { // case 3
                     sibling->left->color = BLACK;
                     sibling->color = RED;
+                    descend(sibling);
                     rotateRight(sibling);
+                    
                     sibling = par->right;
                 }
                 sibling->color = par->color; // case 4
@@ -416,6 +416,7 @@ void TTree::removeFixUp(TTree::TNode *curr) {
                 if (sibling->left->color == BLACK) { // case 3
                     sibling->right->color = BLACK;
                     sibling->color = RED;
+                    descend(sibling);
                     rotateLeft(sibling);
                     sibling = par->left;
                 }
@@ -475,15 +476,19 @@ TTree::TNode *TTree::findMin(TTree::TNode *n) {
 }
 
 void TTree::ascend(TTree::TNode *&n) {
-    if (n->isLeaf) {
+    if (n->isLeaf or n->lower_hull->root != nullptr) {
         return;
     }
     if (n->left->lower_hull->root == nullptr) {
         ascend(n->left);
+        assert(n->left->lower_hull->root != nullptr);
     }
     if (n->right->lower_hull->root == nullptr) {
         ascend(n->right);
+        assert(n->right->lower_hull != nullptr);
     }
+    assert(n->left->lower_hull->root != nullptr);
+    assert(n->right->lower_hull->root != nullptr);
     n->lower_hull->mergeHulls(n->left->lower_hull, n->right->lower_hull);
 }
 
@@ -512,5 +517,17 @@ void TTree::descend(TTree::TNode *&n) {
     ConcatenableQueue *lChildHull = n->left->lower_hull; 
     ConcatenableQueue *rChildHull = n->right->lower_hull;
     n->lower_hull->splitHull(lChildHull, rChildHull);
+}
+
+void TTree::descendTo(TTree::TNode *n, Point p) {
+    if (n->isLeaf){
+        return;
+    }
+    
+
+}
+
+void TTree::insert(double x, double y) {
+    insert(Point(x,y));
 }
 
