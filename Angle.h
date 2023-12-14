@@ -10,28 +10,25 @@
 
 class Angle {
 public:
-    static const enum Side {Left, Right};
-    static const enum Cases {Concave, Supporting, Reflex, Degenerate};
-
     
+    enum Cases {Concave, Supporting, Reflex};
+
     // The cases describe how the angle is oriented relative to the line segment
     
     Point left, middle, right;
 
     Angle(Point left, Point middle, Point right);
-    Angle(Point p);
     Angle() = default;
     
-    bool isDegenerate();
-    
-    Cases getCase(Point &p);
+    Cases getLowerCase(Point &p);
+    Cases getUpperCase(Point &p);
     
     
     static bool isCCW(Point &first, Point &second, Point &third);
     
     static bool isCW(Point &first, Point &second, Point &third);
     
-    static std::pair<Cases, Cases> getCases(Angle leftAngle, Angle rightAngle);
+    static std::pair<Cases, Cases> getCases(Angle leftAngle, Angle rightAngle, bool hullType);
 
     friend std::ostream &operator<<(std::ostream &os, const Angle &angle);
 

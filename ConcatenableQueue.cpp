@@ -8,23 +8,26 @@
 #include "ConcatenableQueue.h"
 #include <cassert>
 #include <iostream>
+#include <tuple>
+#include <limits>
 
 
-ConcatenableQueue::ConcatenableQueue() = default;
-
-ConcatenableQueue::~ConcatenableQueue() = default;
-
-void ConcatenableQueue::concatenate(ConcatenableQueue *left, ConcatenableQueue *right) {
-
+ConcatenableQueue::~ConcatenableQueue(){
+    recycle(root);
 }
 
+
 void ConcatenableQueue::splitHull(ConcatenableQueue *left, ConcatenableQueue *right) {
+    assert(rightBridge != nullptr);
+    assert(leftBridge != nullptr);
     auto [L, R] = split(root, [&](Angle a) { return a >= rightBridge->angle; });
+    assert(L != nullptr);
+    assert(R != nullptr);
     root = nullptr;
     if (left->root == nullptr) {
         left->root = L;
         leftBridge->angle.right = leftBridge->angle.middle;
-        leftBridge->angle.right.y = INFINITY;
+        leftBridge->angle.right.y = (hullType == UPPER) ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
     } else {
         auto [leftFragmentMin, leftFragmentRoot] = removeMin(left->root);
         leftBridge->angle.right = leftFragmentMin->angle.middle;
@@ -33,17 +36,35 @@ void ConcatenableQueue::splitHull(ConcatenableQueue *left, ConcatenableQueue *ri
     if (right->root == nullptr) {
         right->root = R;
         rightBridge->angle.left = rightBridge->angle.middle;
-        rightBridge->angle.left.y = INFINITY;
+        rightBridge->angle.left.y = (hullType == UPPER) ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
     } else {
         auto [rightFragmentRoot, rightFragmentMax] = removeMax(right->root);
         rightBridge->angle.left = rightFragmentMax->angle.middle;
         right->root = join(rightFragmentRoot, rightFragmentMax, R);
     }
+    leftBridge = nullptr;
+    rightBridge = nullptr;
+    assert(left->root != nullptr);
+    assert(right->root != nullptr);
 
 }
 
-ConcatenableQueue::ConcatenableQueue(Point p) {
-    root = new QNode(Angle(p));
+ConcatenableQueue::ConcatenableQueue(Point p, bool _hullType) {
+    hullType = _hullType;
+    Angle angle = Angle(p, p, p);
+    if (hullType == UPPER){
+        angle.left.y = -std::numeric_limits<double>::infinity();
+        angle.right.y = -std::numeric_limits<double>::infinity();
+    } 
+    else {
+        angle.left.y = std::numeric_limits<double>::infinity();
+        angle.right.y = std::numeric_limits<double>::infinity(); 
+    }
+    root = new QNode(angle);
+}
+ConcatenableQueue::ConcatenableQueue(bool _hullType) {
+    hullType = _hullType;
+    root = nullptr;
 }
 
 ConcatenableQueue::QNode *ConcatenableQueue::join2(QNode *T1, QNode *T2) {
@@ -221,12 +242,12 @@ enum Angle::Cases;
 std::pair<ConcatenableQueue::QNode *, ConcatenableQueue::QNode *>
 ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right) {
     QNode *l = left->root;
-    QNode *r = right->root;
+    QNode *r = right->root; 
     assert(l != nullptr and r != nullptr);
     double maxLeft = getMax(l)->angle.middle.x;
     double minRight = getMin(r)->angle.middle.x;
     double midLine = 0.5 * (maxLeft + minRight);
-    auto [lCase, rCase] = Angle::getCases(l->angle, r->angle);
+    auto [lCase, rCase] = Angle::getCases(l->angle, r->angle, hullType);
     while (lCase != Supporting or rCase != Supporting) {
         if (lCase == Supporting) {
             r = (rCase == Concave) ? r->left : r->right;
@@ -275,17 +296,10 @@ ConcatenableQueue::findBridge(ConcatenableQueue *left, ConcatenableQueue *right)
             }
         }
         assert(l != nullptr and r != nullptr);
-        std::tie(lCase, rCase) = Angle::getCases(l->angle, r->angle);
+        std::tie(lCase, rCase) = Angle::getCases(l->angle, r->angle, hullType);
     }
-    if (l->angle.middle.x == r->angle.middle.x){
-        return {getMax(l), getMin(r)};
-    }
+    assert(l != nullptr and r != nullptr);
     return {l, r};
-}
-
-
-int ConcatenableQueue::balanceFactor(ConcatenableQueue::QNode *&n) {
-    return getHeight(n->left) - getHeight(n->right);
 }
 
 void ConcatenableQueue::inOrder(ConcatenableQueue::QNode *n) {
@@ -338,6 +352,8 @@ ConcatenableQueue::removeMin(ConcatenableQueue::QNode *n) {
 
 void ConcatenableQueue::mergeHulls(ConcatenableQueue *left, ConcatenableQueue *right) {
     std::tie(leftBridge, rightBridge) = findBridge(left, right);
+    assert(leftBridge != nullptr);
+    assert(rightBridge != nullptr);
     Angle &leftBridgeAngle = leftBridge->angle;
     Angle &rightBridgeAngle = rightBridge->angle;
     auto [leftLeft, leftRight] = split(left->root, [&](Angle a) { return a > leftBridgeAngle; });
@@ -346,6 +362,8 @@ void ConcatenableQueue::mergeHulls(ConcatenableQueue *left, ConcatenableQueue *r
     right->root = rightLeft;
     leftBridgeAngle.right = rightBridgeAngle.middle;
     rightBridgeAngle.left = leftBridgeAngle.middle;
+    assert(leftLeft != nullptr);
+    assert(rightRight != nullptr);
     root = join2(leftLeft, rightRight);
 }
 
@@ -375,4 +393,11 @@ void ConcatenableQueue::getPoints(ConcatenableQueue::QNode *n, std::vector<Point
 
 bool ConcatenableQueue::isLeaf(ConcatenableQueue::QNode *n) {
     return (n->left == nullptr and n->right == nullptr);
+}
+
+void ConcatenableQueue::recycle(ConcatenableQueue::QNode *n) {
+    if (n == nullptr) return;
+    recycle(n->left);
+    recycle(n->right);
+    delete n;
 }

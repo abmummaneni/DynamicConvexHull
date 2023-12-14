@@ -13,24 +13,21 @@
 #include "ConcatenableQueue.h"
 
 class TTree {
-private:
-    static const bool RED = false;
-    static const bool BLACK = true;
+public:
     struct TNode {
-        Point point;
+        Point point{};
         ConcatenableQueue *lower_hull{};
-        ConcatenableQueue *upper_hull;
-        Point *breakPoint;
-        bool isLeaf; 
-        
-        bool color;
-        TNode *left;
-        TNode *right;
+        ConcatenableQueue *upper_hull{};
+        bool isLeaf{};
+
+        bool color{};
+        TNode *left{};
+        TNode *right{};
         TNode *parent = nullptr;
-        TNode *lMax;
-        TNode *rMin;
-        
-        
+        TNode *lMax{};
+        TNode *rMin{};
+
+
         TNode(Point p, TNode *par);
         TNode(TNode* par, TNode *l, TNode *r);
         TNode() = default;
@@ -44,13 +41,12 @@ private:
         bool operator>=(const TNode &rhs) const;
 
     };
+    static const bool RED = false;
+    static const bool BLACK = true;
     TNode *root;
     
-    void split(TNode *&n);
-    void merge(TNode *&n);
-    void ascend(TNode *&n);
-    void descend(TNode *&n);
-    void descendTo(TNode *n, Point p);
+    virtual void ascend(TNode *&n);
+    virtual void descend(TNode *&n);
     
     TNode *insert(Point &p, TNode *curr);
     TNode *remove(Point &p, TNode *n);
@@ -67,19 +63,20 @@ private:
     TNode *findMax(TNode *n);
     
     void recycle(TNode *n);
-public:
+
+
+
     TTree();
     ~TTree();
-    void insert(Point p);
-    void insert(double x, double y);
-    bool remove(Point p);
+    virtual bool insert(Point p);
+    bool insert(double x, double y);
+    virtual bool remove(Point p);
     void displayTree();
     void checkProperties();
-    void ascend();
-    void descend();
     void printLowerHull();
-    std::vector<Point> getPoints();
-    
+    std::vector<Point> getLowerHull();
+    std::vector<Point> getUpperHull();
+    std::vector<Point> getHull();
 };
 
 

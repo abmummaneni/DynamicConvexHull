@@ -13,7 +13,10 @@
 #include "Angle.h"
 
 class ConcatenableQueue {
+    
 public:
+    const static bool UPPER = true;
+    const static bool LOWER = false;
     struct QNode {
         Angle angle;
         QNode *left;
@@ -28,10 +31,10 @@ public:
 
     };
 
-    std::vector<Angle> hull;
     QNode *leftBridge = nullptr;
     QNode *rightBridge = nullptr;
     QNode *root;
+    bool hullType;
 
     /**
     * @brief Splits the tree rooted at T into two parts, a tree of values lower than k, and a tree of values higher than k.
@@ -70,7 +73,6 @@ public:
     static QNode *getMax(QNode *n);
     static QNode *getMin(QNode *n);
 
-    static int balanceFactor(QNode *&n);
 
     static void inOrder(QNode *n);
     
@@ -90,21 +92,20 @@ public:
 
     static void checkProperties(QNode *n, QNode *max, QNode *min);
 
-    ConcatenableQueue();
+    ConcatenableQueue(bool hullType);
 
-    explicit ConcatenableQueue(Point p);
+    ConcatenableQueue(Point p, bool hullType);
 
     ~ConcatenableQueue();
     
     bool isLeaf(QNode *n);
-    void concatenate(ConcatenableQueue *left, ConcatenableQueue *right);
     
     void mergeHulls(ConcatenableQueue *left, ConcatenableQueue *right);
 
     void splitHull(ConcatenableQueue *left, ConcatenableQueue *right);
 
     std::pair<QNode *, QNode *> findBridge(ConcatenableQueue *left, ConcatenableQueue *right);
-    
+    void recycle(QNode *n);
     
     friend class TTree;
 };

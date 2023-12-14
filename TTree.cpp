@@ -11,6 +11,7 @@
 #include <queue>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 using QNode = ConcatenableQueue::QNode;
 /**
  * @brief Constructs a leaf node with the given point
@@ -25,7 +26,8 @@ TTree::TNode::TNode(Point p, TTree::TNode *par = nullptr) {
     left = right = nullptr;
     parent = par;
     lMax = rMin = this;
-    lower_hull = new ConcatenableQueue(p);
+    lower_hull = new ConcatenableQueue(p, ConcatenableQueue::LOWER);
+    upper_hull = new ConcatenableQueue(p, ConcatenableQueue::UPPER);
 }
 
 /**
@@ -44,7 +46,8 @@ TTree::TNode::TNode(TTree::TNode *par, TTree::TNode *l, TTree::TNode *r) {
     rMin = r->lMax;
     l->parent = this;
     r->parent = this;
-    lower_hull = new ConcatenableQueue();
+    lower_hull = new ConcatenableQueue(ConcatenableQueue::LOWER);
+    upper_hull = new ConcatenableQueue(ConcatenableQueue::UPPER);
 }
 
 bool TTree::TNode::operator<(const TTree::TNode &rhs) const {
@@ -75,7 +78,9 @@ TTree::TNode *TTree::insert(Point &p, TTree::TNode *curr) {
         root = new TNode(p);
         return root;
     }
+    if (curr->lMax->point == p or curr->rMin->point == p) return nullptr;
     if (curr->isLeaf) {
+        if (curr->point == p){ return nullptr;}
         TNode *newLeaf = new TNode(p);
         TNode *newInternal;
         if (p < curr->point) {
@@ -101,6 +106,7 @@ TTree::TNode *TTree::insert(Point &p, TTree::TNode *curr) {
             if (p < curr->rMin->point) {
                 TNode *newLeaf = insert(p, curr->right);
                 curr->rMin = newLeaf;
+                return newLeaf;
             } else {
                 return insert(p, curr->right);
             }
@@ -171,7 +177,9 @@ TTree::TNode *TTree::remove(Point &p, TTree::TNode *n) {
  * @param n the node at which the rotation occurs
  */
 void TTree::rotateLeft(TTree::TNode *n) {
+    descend(n);
     TNode *rightNode = n->right;
+    descend(rightNode);
 
     if (n == root) {
         root = rightNode;
@@ -189,6 +197,7 @@ void TTree::rotateLeft(TTree::TNode *n) {
 
     rightNode->left = n;
     n->parent = rightNode;
+    
 }
 
 /**
@@ -196,7 +205,9 @@ void TTree::rotateLeft(TTree::TNode *n) {
  * @param n the node at which the rotation occurs
  */
 void TTree::rotateRight(TTree::TNode *n) {
+    descend(n);
     TNode *leftNode = n->left;
+    descend(leftNode);
 
     transplant(n, leftNode);
 
@@ -264,9 +275,10 @@ void TTree::fixUp(TTree::TNode *curr) {
     root->color = BLACK;
 }
 
-void TTree::insert(Point p) {
-    insert(p, root);
+bool TTree::insert(Point p) {
+    TNode *newLeaf = insert(p, root);
     ascend(root);
+    return newLeaf != nullptr;
 }
 
 bool TTree::remove(Point p) {
@@ -353,24 +365,6 @@ void TTree::transplant(TTree::TNode *u, TTree::TNode *v) {
 
 }
 
-/**
- * @brief Splits the hulls stored in the node into two hulls and pushes them down to the children
- * @param n 
- */
-void TTree::split(TTree::TNode *&n) {
-    if (n->isLeaf) {
-        return;
-    }
-
-}
-
-void TTree::merge(TTree::TNode *&n) {
-    if (n->isLeaf) {
-        return;
-    }
-
-
-}
 
 void TTree::removeFixUp(TTree::TNode *curr) {
     while (curr != root and curr->color == BLACK) {
@@ -490,44 +484,60 @@ void TTree::ascend(TTree::TNode *&n) {
     assert(n->left->lower_hull->root != nullptr);
     assert(n->right->lower_hull->root != nullptr);
     n->lower_hull->mergeHulls(n->left->lower_hull, n->right->lower_hull);
+    n->upper_hull->mergeHulls(n->left->upper_hull, n->right->upper_hull);
 }
 
-void TTree::ascend() {
-    ascend(root);
-}
 
 void TTree::printLowerHull() {
     ConcatenableQueue::inOrder(root->lower_hull->root);
 }
 
-std::vector<Point> TTree::getPoints() {
+std::vector<Point> TTree::getLowerHull() {
     std::vector<Point> points;
     ConcatenableQueue::getPoints(root->lower_hull->root, points);
     return points;
 }
-
-void TTree::descend() {
-    descend(root);
+std::vector<Point> TTree::getUpperHull() {
+    std::vector<Point> points;
+    ConcatenableQueue::getPoints(root->upper_hull->root, points);
+    return points;
+}
+std::vector<Point> TTree::getHull() {
+    std::vector<Point> lower = getLowerHull();
+    std::vector<Point> upper = getUpperHull();
+    std::reverse(upper.begin(), upper.end()); // now upper is counterclockwise
+    if (lower.empty()){
+        return upper; 
+    }
+    if (upper.empty()){
+        return lower;
+    }
+    if (upper.front() == lower.back()) {
+        lower.pop_back();
+    }
+    if (lower.front() == upper.back()) {
+        upper.pop_back();
+    }
+    lower.insert(lower.end(), upper.begin(), upper.end());
+    return lower;
 }
 
+
 void TTree::descend(TTree::TNode *&n) {
-    if (n->isLeaf) {
+    if (n->isLeaf or n->lower_hull->root == nullptr) {
         return;
     }
     ConcatenableQueue *lChildHull = n->left->lower_hull; 
     ConcatenableQueue *rChildHull = n->right->lower_hull;
     n->lower_hull->splitHull(lChildHull, rChildHull);
+
+    lChildHull = n->left->upper_hull;
+    rChildHull = n->right->upper_hull;
+    n->upper_hull->splitHull(lChildHull, rChildHull);
 }
 
-void TTree::descendTo(TTree::TNode *n, Point p) {
-    if (n->isLeaf){
-        return;
-    }
-    
 
-}
-
-void TTree::insert(double x, double y) {
-    insert(Point(x,y));
+bool TTree::insert(double x, double y) {
+    return insert(Point(x,y));
 }
 
