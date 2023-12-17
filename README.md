@@ -14,22 +14,26 @@ The driver files are:
 - `mediumLeda.cpp`
 - `timer.cpp`
 - `randMatplot++.cpp`
+- `HullGraph.cpp`
 
 
 The first two drivers require Leda and are interactive programs where the user can add and remove points using left and right 
-clicks.
+clicks. The second driver shows the process of the hulls being broken up and recombined.
 
 The third driver inserts 2^18 points and times the programs execution time for each power of 2 insert.
 It prints pairs of the form (log^2(n), time) to stdout. 
 These can then be copy and pasted into Desmos which shows the linear relationship as expected.
 
-The last driver uses the Matplot++ to randomly insert and delete points. I was using this before I had set up Leda, eventually I will convert this to use Leda as well.
+The fourth driver uses the Matplot++ to randomly insert and delete points. I was using this before I had set up Leda, eventually I will convert this to use Leda as well.
 
+The last driver draws the lower hull graph of a randomly generated point set.
 ## How to run the program
 A makefile is provided which can compile the following executables:
 - `minimalLeda`
 - `mediumLeda`
 - `timer`
+- `HullGraph`
+
 To compile any one of these, simply run `make <executable name>` while in the directory containing the files.
 
 If you have Matplot++ installed you can compile `randMatplot++` with the included CMakeLists.txt file.
@@ -44,6 +48,7 @@ however for practical use this will be unnoticeable.
 
 `randMatplot++` will open a window where you can watch the points being randomly added and removed.
 
+`HullGraph` will open a window where you can watch the lower hull graph being constructed one layer at a time.
 ## What I learned
 I will include speak about this in my presentation, but here are some of the things I learned from this project:
 - The importance of dynamic data structures and the applications of dynamic algorithms to the real world.
