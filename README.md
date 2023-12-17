@@ -33,7 +33,6 @@ A makefile is provided which can compile the following executables:
 - `mediumLeda`
 - `timer`
 - `HullGraph`
-
 To compile any one of these, simply run `make <executable name>` while in the directory containing the files.
 
 If you have Matplot++ installed you can compile `randMatplot++` with the included CMakeLists.txt file.
