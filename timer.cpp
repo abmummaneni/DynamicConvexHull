@@ -19,7 +19,7 @@ void timer::addTest() {
     std::uniform_real_distribution<> dis(-1000, 1000);
     int powersOfTwo = 18;
     points.reserve(pow(2, powersOfTwo));
-    for (int i = 0; i < pow(2, powersOfTwo); i++) {
+    for (int i = 0; i < pow(2, powersOfTwo + 1); i++) {
         points.emplace_back(dis(gen), dis(gen));
     }
     for (int i = 0; i < powersOfTwo; ++i) {
@@ -32,6 +32,6 @@ void timer::addTest() {
         auto duration = end - start;
         // Print (log(n)^2, time) in microseconds. 
         // This ends up looking linear as expected by the O(log(n)^2) runtime of the algorithm.
-        std::cout << "(" << pow(i, 2)  << "," << 1000000 * duration / CLOCKS_PER_SEC << ")" << std::endl;
+        std::cout << "(" << pow(i + 1, 2)  << "," << 1000000 * duration / CLOCKS_PER_SEC << ")" << std::endl;
     }
 }

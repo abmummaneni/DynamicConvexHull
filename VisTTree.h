@@ -18,6 +18,10 @@ class VisTTree : public TTree {
     VisUtils *visUtils;
     bool insert(Point p) override;
     bool remove(Point p) override;
+    void setVisualize(bool _visualize);
+    void drawHullGraph(TNode *n);
+private:
+    bool visualize = true;
     
     
 };

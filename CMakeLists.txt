@@ -55,3 +55,4 @@ add_executable(randMatplot++ randMatplot++.cpp
 target_link_libraries(randMatplot++ Matplot++::matplot)
 add_executable(mediumLeda VisTTree.cpp VisTTree.h
         mediumLeda.cpp)
+add_executable(HullGraph HullGraph.cpp)

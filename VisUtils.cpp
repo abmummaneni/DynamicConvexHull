@@ -1,4 +1,5 @@
 #include "VisUtils.h"
+#include <cassert>
 using namespace std;
 
 void VisUtils::drawHull(TTree *t, vector<Point> &hull) {
@@ -43,7 +44,7 @@ void VisUtils::drawHull(vector<Point> &hull, double ratio) {
 }
 
 void VisUtils::drawHullGradient(vector<Point> &hull, bool increment) {
-    if (increment) gradientRatio += 0.1;
+    if (increment) gradientRatio += 0.01;
     if (hull.size() < 2) return;
     if (gradientRatio > 1) gradientRatio = 0;
     RGB color = rgb(gradientRatio);
@@ -51,5 +52,10 @@ void VisUtils::drawHullGradient(vector<Point> &hull, bool increment) {
         w->draw_segment(hull[i].x, hull[i].y, hull[i + 1].x, hull[i + 1].y, leda::color(color.r, color.g, color.b));
     }
 
+}
+
+void VisUtils::drawHullGradient(vector<Point> &hull, int increments) {
+    gradientRatio = (0.1 * increments) - floor(0.1 * increments);
+    drawHullGradient(hull, false);
 }
 

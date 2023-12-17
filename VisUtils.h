@@ -9,6 +9,8 @@
 #include "ConcatenableQueue.h"
 #include "Angle.h"
 #include "Point.h"
+#include <thread>
+#include <chrono>
 
 class VisUtils {
     public:
@@ -22,11 +24,19 @@ class VisUtils {
     void drawHull(std::vector<Point> &hull);
     
     void drawHullGradient(std::vector<Point> &hull, bool increment);
+
+
+    void drawHullGradient(std::vector<Point> &hull, int increments);
     
     void drawHull(std::vector<Point> &hull, double ratio);
+    
+    void incrementGradientRatio() { gradientRatio += 0.05; }
 
     void resetGradientRatio() { gradientRatio = 0; }
     void deleteHull(std::vector<Point> &hull);
+    void wait(int milliseconds) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    }
     struct RGB {
         uint8_t r;
         uint8_t g;

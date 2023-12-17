@@ -38,8 +38,7 @@ int main(){
                 t.remove(realPoint);
                 visualizer.resetGradientRatio();
                 visualizer.deleteHull(hull);
-                hull = t.getLowerHull();
-                visualizer.drawHull(hull);
+                visualizer.drawHull(&t, hull);
                 W.draw_filled_circle(realPoint.x, realPoint.y, 0.5, leda::white);
             }
 
@@ -53,8 +52,7 @@ int main(){
             t.insert(newPoint);
             visualizer.resetGradientRatio();
             visualizer.deleteHull(hull);
-            hull = t.getLowerHull();
-            visualizer.drawHull(hull);
+            visualizer.drawHull(&t, hull);
         }
 
     }

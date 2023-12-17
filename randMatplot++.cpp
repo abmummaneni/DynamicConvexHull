@@ -24,8 +24,8 @@ int main(){
     ax->y_axis().limits({0, 100});
     vector<Point> hull;
     std::mt19937 gen(std::random_device{}());
-    std::uniform_int_distribution dist(10, 90);
-    for (int i = 0; i < 10000; ++i) {
+    std::normal_distribution<double> dist(50, 10);
+    for (int i = 0; i < 500000; ++i) {
         Point randPoint = Point(dist(gen), dist(gen));
         bool newPoint = t.insert(randPoint);
         if (newPoint){
@@ -52,9 +52,9 @@ int main(){
             yHull.emplace_back(p.y);
         }
         plot(xHull, yHull);
-        this_thread::sleep_for(chrono::milliseconds(150));
+        this_thread::sleep_for(chrono::milliseconds(5));
         hold(off);
-        if (i > 20 and newPoint) {
+        /*if (i > 200 and newPoint) {
             std::uniform_int_distribution randIndex(0, (int) (x.size() - 1));
             int index = randIndex(gen);
             t.remove(Point(x[index], y[index]));
@@ -81,8 +81,8 @@ int main(){
             }
             plot(xHull, yHull);
             hold(off);
-            this_thread::sleep_for(chrono::milliseconds(150));
-        }
+            this_thread::sleep_for(chrono::milliseconds(10));
+        }*/
     }
     string stall;
     cin >> stall;

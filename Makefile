@@ -39,5 +39,10 @@ mediumLeda.o: mediumLeda.cpp VisTTree.h TTree.h Angle.h ConcatenableQueue.h Poin
 mediumLeda: mediumLeda.o VisTTree.o TTree.o ConcatenableQueue.o Angle.o Point.o VisUtils.o
 	$(CXX) -o mediumLeda mediumLeda.o VisTTree.o TTree.o ConcatenableQueue.o Angle.o Point.o VisUtils.o $(LFLAG)
 
+HullGraph.o: HullGraph.cpp
+	$(CXX) -c HullGraph.cpp $(INC)
+	
+HullGraph: HullGraph.o VisTTree.o TTree.o ConcatenableQueue.o Angle.o Point.o VisUtils.o
+	$(CXX) -o HullGraph HullGraph.o VisTTree.o TTree.o ConcatenableQueue.o Angle.o Point.o VisUtils.o $(LFLAG)
 clean:
 	rm -f *.o minimalLeda mediumLeda timer
